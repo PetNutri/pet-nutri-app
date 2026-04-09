@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../data/conditions_database.dart';
 import '../theme/app_theme.dart';
 import 'condition_screen.dart';
-import 'search_screen.dart';
+import 'symptom_checker_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Pronađi najbolju hranu za ljubimca',
+                                      'Пронађи најбољу храну за љубимца',
                                       style: GoogleFonts.inter(
                                         fontSize: 14,
                                         color: AppColors.textSecondary,
@@ -114,17 +114,74 @@ class _HomeScreenState extends State<HomeScreen> {
                             .fadeIn(delay: 250.ms, duration: 400.ms),
 
                         const SizedBox(height: 28),
-                        Row(
+
+                        // Дугме за проверу симптома
+                        GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SymptomCheckerScreen(),
+                            ),
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  AppColors.primary,
+                                  Color(0xFF5B4AE0),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.search_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Провера симптома',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                            .animate()
+                            .fadeIn(delay: 280.ms, duration: 400.ms),
+
+                        const SizedBox(height: 28),
+
+                        // Избор врсте
                           children: [
                             _PetToggle(
-                              label: '🐕 Pas',
+                              label: '🐕 Пас',
                               isSelected: _selectedPet == PetType.dog,
                               onTap: () =>
                                   setState(() => _selectedPet = PetType.dog),
                             ),
                             const SizedBox(width: 12),
                             _PetToggle(
-                              label: '🐈 Mačka',
+                              label: '🐈 Мачка',
                               isSelected: _selectedPet == PetType.cat,
                               onTap: () =>
                                   setState(() => _selectedPet = PetType.cat),
@@ -137,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 24),
 
                         Text(
-                          'Zdravstvena stanja',
+                          'Здравствена стања',
                           style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -149,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         const SizedBox(height: 6),
                         Text(
-                          'Izaberi dijagnozu da vidiš preporučenu ishranu',
+                          'Изабери дијагнозу да видиш препоручену исхрану',
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             color: AppColors.textMuted,
