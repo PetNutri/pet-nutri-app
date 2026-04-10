@@ -1,5 +1,7 @@
 /// Veterinarski dijetetski vodici za cesta stanja kod kucnih ljubimaca.
 
+import 'extra_conditions_dogs_cats.dart';
+
 enum PetType { dog, cat, rabbit, rodent, bird, terrarium, aquarium }
 
 String petTypeLabel(PetType type) {
@@ -56,7 +58,7 @@ List<PetCondition> findConditionsBySymptoms(
     List<String> selectedSymptoms, PetType petType) {
   if (selectedSymptoms.isEmpty) return [];
   final matches = <MapEntry<PetCondition, int>>[];
-  for (final condition in conditionsDatabase) {
+  for (final condition in allConditions) {
     if (!condition.affectedSpecies.contains(petType)) continue;
     int matchCount = 0;
     for (final symptom in condition.symptoms) {
@@ -70,7 +72,7 @@ List<PetCondition> findConditionsBySymptoms(
 
 List<String> getAllSymptoms(PetType petType) {
   final symptoms = <String>{};
-  for (final condition in conditionsDatabase) {
+  for (final condition in allConditions) {
     if (condition.affectedSpecies.contains(petType)) {
       symptoms.addAll(condition.symptoms);
     }
@@ -78,6 +80,12 @@ List<String> getAllSymptoms(PetType petType) {
   final list = symptoms.toList()..sort();
   return list;
 }
+
+/// Sve bolesti spojene u jednu listu
+final List<PetCondition> allConditions = [
+  ...conditionsDatabase,
+  ...extraDogCatConditions,
+];
 
 const List<PetCondition> conditionsDatabase = [
   // ==================== PSI I MACKE ====================

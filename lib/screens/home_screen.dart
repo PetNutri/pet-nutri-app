@@ -19,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
 
   List<PetCondition> get _filteredConditions {
-    final bySpecies = conditionsDatabase
+    final bySpecies = allConditions
         .where((c) => c.affectedSpecies.contains(_selectedPet))
         .toList();
     if (_searchQuery.isEmpty) return bySpecies;
