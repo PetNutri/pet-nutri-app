@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,6 +24,7 @@ class _ConditionScreenState extends State<ConditionScreen> {
   bool _loading = false;
   bool _initialLoaded = false;
   String? _error;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -36,7 +38,6 @@ class _ConditionScreenState extends State<ConditionScreen> {
   Future<void> _loadInitialFood() async {
     setState(() { _loading = true; _error = null; });
     try {
-      // Ucitaj popularnu hranu za ljubimce
       final products = await PetFoodApi.search('pet food');
       final scores = products
           .map((p) => FoodScorer.evaluate(p, widget.condition))
@@ -56,22 +57,25 @@ class _ConditionScreenState extends State<ConditionScreen> {
     }
   }
 
-  Future<void> _search() async {
-    final query = _searchController.text.trim();
-    if (query.isEmpty) {
+  void _onSearchChanged(String query) {
+    _debounce?.cancel();
+    if (query.trim().isEmpty) {
       setState(() => _filteredResults = _allResults);
       return;
     }
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _search(query.trim());
+    });
+  }
 
+  Future<void> _search(String query) async {
     setState(() { _loading = true; _error = null; });
-
     try {
       final products = await PetFoodApi.search(query);
       final scores = products
           .map((p) => FoodScorer.evaluate(p, widget.condition))
           .toList()
         ..sort((a, b) => b.score.compareTo(a.score));
-
       setState(() {
         _filteredResults = scores;
         _loading = false;
@@ -86,6 +90,7 @@ class _ConditionScreenState extends State<ConditionScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -95,6 +100,20 @@ class _ConditionScreenState extends State<ConditionScreen> {
     if (score >= 55) return AppColors.accent;
     if (score >= 35) return AppColors.warning;
     return AppColors.danger;
+  }
+
+  String _scoreLabel(int score) {
+    if (score >= 75) return 'Preporuceno';
+    if (score >= 55) return 'Dobro';
+    if (score >= 35) return 'Prosecno';
+    return 'Ne preporucuje se';
+  }
+
+  IconData _scoreIcon(int score) {
+    if (score >= 75) return Icons.thumb_up_rounded;
+    if (score >= 55) return Icons.check_circle_outline_rounded;
+    if (score >= 35) return Icons.info_outline_rounded;
+    return Icons.warning_amber_rounded;
   }
 
   @override
@@ -306,69 +325,25 @@ class _ConditionScreenState extends State<ConditionScreen> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Search input
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.card,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppColors.glassBorder,
-                                ),
-                              ),
-                              child: TextField(
-                                controller: _searchController,
-                                style: GoogleFonts.inter(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 15,
-                                ),
-                                decoration: InputDecoration(
-                  hintText: 'npr. Royal Canin, Whiskas...',
-                                  hintStyle: GoogleFonts.inter(
-                                    color: AppColors.textMuted,
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 14,
-                                  ),
-                                ),
-                                onSubmitted: (_) => _search(),
-                              ),
-                            ),
+                      // Search input - live search
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.glassBorder),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 15),
+                          decoration: InputDecoration(
+                            hintText: 'npr. Royal Canin, Whiskas...',
+                            hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                            prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 20),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           ),
-                          const SizedBox(width: 10),
-                          GestureDetector(
-                            onTap: _search,
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    AppColors.primary,
-                                    Color(0xFF5B4AE0),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color:
-                                        AppColors.primary.withOpacity(0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.search_rounded,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ],
+                          onChanged: _onSearchChanged,
+                        ),
                       ),
 
                       const SizedBox(height: 20),
@@ -418,6 +393,8 @@ class _ConditionScreenState extends State<ConditionScreen> {
                             child: _FoodResultCard(
                               foodScore: fs,
                               scoreColor: _scoreColor(fs.score),
+                              scoreLabel: _scoreLabel(fs.score),
+                              scoreIcon: _scoreIcon(fs.score),
                             ),
                           )
                               .animate()
@@ -479,10 +456,14 @@ class _RecommendationBadge extends StatelessWidget {
 class _FoodResultCard extends StatelessWidget {
   final FoodScore foodScore;
   final Color scoreColor;
+  final String scoreLabel;
+  final IconData scoreIcon;
 
   const _FoodResultCard({
     required this.foodScore,
     required this.scoreColor,
+    required this.scoreLabel,
+    required this.scoreIcon,
   });
 
   @override
@@ -541,50 +522,33 @@ class _FoodResultCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              // Score circle
+              // Score label
               Container(
-                width: 52,
-                height: 52,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
                   color: scoreColor.withOpacity(0.12),
-                  border: Border.all(
-                    color: scoreColor.withOpacity(0.4),
-                    width: 2,
-                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: scoreColor.withOpacity(0.3)),
                 ),
-                child: Center(
-                  child: Text(
-                    '${fs.score}',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: scoreColor,
+                child: Column(
+                  children: [
+                    Icon(scoreIcon, color: scoreColor, size: 20),
+                    const SizedBox(height: 2),
+                    Text(
+                      scoreLabel,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: scoreColor,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],
           ),
 
           const SizedBox(height: 10),
-
-          // Rating
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: scoreColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              fs.rating,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: scoreColor,
-              ),
-            ),
-          ),
 
           // Pros
           if (fs.pros.isNotEmpty) ...[
