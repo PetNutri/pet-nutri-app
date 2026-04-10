@@ -87,6 +87,13 @@ class AppLocalizations {
 
   String get language => _t('Jezik', 'Language');
 
+  // Vet finder
+  String get findVet => _t('Pronadji veterinara', 'Find a Vet');
+  String get findVetNearby => _t('Pronadji veterinara u blizini', 'Find a vet nearby');
+  String get findVetDesc => _t('Koristi tvoju lokaciju da pronadje najblize veterinarske ambulante', 'Uses your location to find the nearest veterinary clinics');
+  String get locationLoading => _t('Ucitavanje lokacije...', 'Loading location...');
+  String get locationError => _t('Nije moguce dobiti lokaciju. Dozvoli pristup lokaciji u browseru.', 'Could not get location. Allow location access in your browser.');
+
   String _t(String sr, String en) => locale.languageCode == 'en' ? en : sr;
 }
 

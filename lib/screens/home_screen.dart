@@ -122,7 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ).animate().fadeIn(delay: 220.ms, duration: 400.ms),
 
                         const SizedBox(height: 16),
-
                         // Provera simptoma dugme
                         GestureDetector(
                           onTap: () => Navigator.push(context,
@@ -146,6 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ).animate().fadeIn(delay: 250.ms, duration: 400.ms),
+
+                        const SizedBox(height: 12),
+
+                        // Find a vet button
+                        _FindVetButton(l: l),
 
                         const SizedBox(height: 24),
 
@@ -347,5 +351,65 @@ class _ShopLink extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _FindVetButton extends StatefulWidget {
+  final AppLocalizations l;
+  const _FindVetButton({required this.l});
+  @override
+  State<_FindVetButton> createState() => _FindVetButtonState();
+}
+
+class _FindVetButtonState extends State<_FindVetButton> {
+  bool _loading = false;
+
+  void _findVet() {
+    setState(() => _loading = true);
+
+    html.window.navigator.geolocation.getCurrentPosition().then((position) {
+      final lat = position.coords!.latitude;
+      final lng = position.coords!.longitude;
+      final query = Uri.encodeComponent('veterinar');
+      html.window.open(
+        'https://www.google.com/maps/search/$query/@$lat,$lng,14z',
+        '_blank',
+      );
+      setState(() => _loading = false);
+    }).catchError((_) {
+      // Fallback: open Google Maps search without coordinates
+      final query = Uri.encodeComponent('veterinar near me');
+      html.window.open('https://www.google.com/maps/search/$query', '_blank');
+      setState(() => _loading = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = widget.l;
+    return GestureDetector(
+      onTap: _loading ? null : _findVet,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [Color(0xFF059669), Color(0xFF10B981)]),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: const Color(0xFF059669).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_loading)
+              const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            else
+              const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 22),
+            const SizedBox(width: 10),
+            Text(l.findVetNearby,
+              style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: 270.ms, duration: 400.ms);
   }
 }
