@@ -666,7 +666,7 @@ class _FoodResultCard extends StatelessWidget {
                   label: 'Pet Centar',
                   color: const Color(0xFFE65100),
                   onTap: () {
-                    final q = Uri.encodeComponent(product.name);
+                    final q = Uri.encodeComponent(product.brand);
                     html.window.open('https://www.petcentar.rs/pretraga?q=$q', '_blank');
                   },
                 ),
@@ -675,7 +675,7 @@ class _FoodResultCard extends StatelessWidget {
                   label: 'Zoo City',
                   color: const Color(0xFF2E7D32),
                   onTap: () {
-                    final q = Uri.encodeComponent(product.name);
+                    final q = Uri.encodeComponent(product.brand);
                     html.window.open('https://www.zoocity.rs/search?q=$q', '_blank');
                   },
                 ),
@@ -684,7 +684,7 @@ class _FoodResultCard extends StatelessWidget {
                   label: 'Maxi Zoo',
                   color: const Color(0xFF1565C0),
                   onTap: () {
-                    final q = Uri.encodeComponent(product.name);
+                    final q = Uri.encodeComponent(product.brand);
                     html.window.open('https://www.maxizoo.rs/search/?q=$q', '_blank');
                   },
                 ),
@@ -693,7 +693,7 @@ class _FoodResultCard extends StatelessWidget {
                   label: 'ePet Shop',
                   color: const Color(0xFF6A1B9A),
                   onTap: () {
-                    final q = Uri.encodeComponent(product.name);
+                    final q = Uri.encodeComponent(product.brand);
                     html.window.open('https://www.epetshop.rs/search?q=$q', '_blank');
                   },
                 ),
