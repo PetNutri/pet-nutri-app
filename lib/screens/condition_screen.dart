@@ -668,45 +668,45 @@ class _FoodResultCard extends StatelessWidget {
                   onTap: () {
                     final brand = product.brand;
                     final q = (brand.isNotEmpty && brand != 'Nepoznat brend')
-                        ? Uri.encodeComponent(brand)
+                        ? Uri.encodeComponent(brand).toLowerCase().replaceAll('%20', '-')
                         : '';
-                    html.window.open('https://www.petcentar.rs/search?q=$q', '_blank');
+                    html.window.open('https://www.pet-centar.rs/products/$q', '_blank');
                   },
                 ),
                 const SizedBox(width: 8),
                 _ShopButton(
-                  label: 'Zoo City',
+                  label: 'PetSpot',
                   color: const Color(0xFF2E7D32),
                   onTap: () {
                     final brand = product.brand;
                     final q = (brand.isNotEmpty && brand != 'Nepoznat brend')
                         ? Uri.encodeComponent(brand)
                         : '';
-                    html.window.open('https://zoocity.rs/pretraga?trazeni_pojam=$q', '_blank');
+                    html.window.open('https://petspot.rs/catalogsearch/result/?q=$q', '_blank');
                   },
                 ),
                 const SizedBox(width: 8),
                 _ShopButton(
-                  label: 'Petshop',
+                  label: 'Premium Pet',
                   color: const Color(0xFF1565C0),
                   onTap: () {
                     final brand = product.brand;
                     final q = (brand.isNotEmpty && brand != 'Nepoznat brend')
                         ? Uri.encodeComponent(brand)
                         : '';
-                    html.window.open('https://www.petshop.rs/search?q=$q', '_blank');
+                    html.window.open('https://www.premiumpet.rs/g/f/Search=$q', '_blank');
                   },
                 ),
                 const SizedBox(width: 8),
                 _ShopButton(
-                  label: 'Google',
+                  label: 'Ananas',
                   color: const Color(0xFF6A1B9A),
                   onTap: () {
                     final brand = product.brand;
                     final q = (brand.isNotEmpty && brand != 'Nepoznat brend')
-                        ? Uri.encodeComponent('$brand hrana za ljubimce kupovina srbija')
-                        : Uri.encodeComponent('hrana za ljubimce kupovina srbija');
-                    html.window.open('https://www.google.com/search?q=$q', '_blank');
+                        ? Uri.encodeComponent(brand)
+                        : '';
+                    html.window.open('https://ananas.rs/search?query=$q', '_blank');
                   },
                 ),
               ],
