@@ -3,20 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const background = Color(0xFFF5F6FA);
+  // Premium svetla tema sa jakim kontrastom
+  static const background = Color(0xFFF8F7F4);     // topla bela
   static const surface = Color(0xFFFFFFFF);
   static const card = Color(0xFFFFFFFF);
-  static const primary = Color(0xFF6C5CE7);
-  static const primaryLight = Color(0xFFA29BFE);
-  static const accent = Color(0xFF00B4A6);
-  static const warning = Color(0xFFE8920D);
-  static const danger = Color(0xFFE74C3C);
-  static const success = Color(0xFF27AE60);
-  static const textPrimary = Color(0xFF1A1D2E);
-  static const textSecondary = Color(0xFF5A6178);
-  static const textMuted = Color(0xFF9098B8);
-  static const glassBorder = Color(0x18000000);
-  static const glassBackground = Color(0x08000000);
+  static const primary = Color(0xFF4A3ABA);         // duboka ljubicasta
+  static const primaryLight = Color(0xFF7C6DD8);
+  static const accent = Color(0xFF0D9488);          // teal
+  static const warning = Color(0xFFD97706);         // tamni amber
+  static const danger = Color(0xFFDC2626);          // crvena
+  static const success = Color(0xFF059669);         // emerald
+  static const textPrimary = Color(0xFF111827);     // skoro crna
+  static const textSecondary = Color(0xFF374151);   // tamno siva
+  static const textMuted = Color(0xFF6B7280);       // srednja siva
+  static const glassBorder = Color(0x12000000);
+  static const glassBackground = Color(0x06000000);
 }
 
 class AppTheme {
@@ -55,7 +56,7 @@ class GlassCard extends StatelessWidget {
     required this.child,
     this.padding,
     this.margin,
-    this.borderRadius = 20,
+    this.borderRadius = 16,
   });
 
   @override
@@ -65,12 +66,17 @@ class GlassCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: const Color(0x0A000000)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
