@@ -6,8 +6,8 @@ enum PetType { dog, cat, rabbit, rodent, bird, terrarium, aquarium }
 
 String petTypeLabel(PetType type) {
   switch (type) {
-    case PetType.dog: return '🐕 Pas';
-    case PetType.cat: return '🐈 Macka';
+    case PetType.dog: return '🐕 Psi';
+    case PetType.cat: return '🐈 Macke';
     case PetType.rabbit: return '🐇 Zecevi i kunici';
     case PetType.rodent: return '🐹 Glodari';
     case PetType.bird: return '🐦 Ptice';
