@@ -374,34 +374,62 @@ class _FoodResultCard extends StatelessWidget {
   }
 }
 
-class _ShopButton extends StatelessWidget {
+class _ShopButton extends StatefulWidget {
   final String label; final Color color; final VoidCallback onTap;
   const _ShopButton({required this.label, required this.color, required this.onTap});
   @override
+  State<_ShopButton> createState() => _ShopButtonState();
+}
+
+class _ShopButtonState extends State<_ShopButton> {
+  bool _hovering = false;
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(10), border: Border.all(color: color.withOpacity(0.3))),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.shopping_bag_outlined, color: color, size: 14),
-          const SizedBox(width: 4),
-          Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
-        ])));
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: widget.color.withOpacity(_hovering ? 0.25 : 0.15),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: widget.color.withOpacity(_hovering ? 0.6 : 0.3))),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.shopping_bag_outlined, color: widget.color, size: 14),
+            const SizedBox(width: 4),
+            Text(widget.label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: widget.color)),
+          ]))));
   }
 }
 
-class _FilterChip extends StatelessWidget {
+class _FilterChip extends StatefulWidget {
   final String label; final bool isSelected; final Color? color; final VoidCallback onTap;
   const _FilterChip({required this.label, required this.isSelected, this.color, required this.onTap});
   @override
+  State<_FilterChip> createState() => _FilterChipState();
+}
+
+class _FilterChipState extends State<_FilterChip> {
+  bool _hovering = false;
+  @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.primary;
-    return GestureDetector(onTap: onTap,
+    final c = widget.color ?? AppColors.primary;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(onTap: widget.onTap,
       child: AnimatedContainer(duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(color: isSelected ? c.withOpacity(0.15) : AppColors.card, borderRadius: BorderRadius.circular(12), border: Border.all(color: isSelected ? c.withOpacity(0.5) : AppColors.glassBorder)),
-        child: Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: isSelected ? c : AppColors.textMuted))));
+        decoration: BoxDecoration(
+          color: widget.isSelected ? c.withOpacity(0.15) : _hovering ? c.withOpacity(0.08) : AppColors.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: widget.isSelected ? c.withOpacity(0.5) : _hovering ? c.withOpacity(0.3) : AppColors.glassBorder)),
+        child: Text(widget.label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600,
+          color: widget.isSelected ? c : _hovering ? c.withOpacity(0.8) : AppColors.textMuted)))));
   }
 }
 

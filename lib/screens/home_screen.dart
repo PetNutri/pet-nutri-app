@@ -12,9 +12,44 @@ import '../utils/text_utils.dart';
 import 'condition_screen.dart';
 import 'symptom_checker_screen.dart';
 
+/// Reusable hover wrapper — scales up slightly and changes opacity on hover.
+class HoverEffect extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  const HoverEffect({super.key, required this.child, this.onTap});
+  @override
+  State<HoverEffect> createState() => _HoverEffectState();
+}
+
+class _HoverEffectState extends State<HoverEffect> {
+  bool _hovering = false;
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: widget.onTap != null ? SystemMouseCursors.click : MouseCursor.defer,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _hovering ? 1.03 : 1.0,
+          duration: const Duration(milliseconds: 150),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            foregroundDecoration: BoxDecoration(
+              color: _hovering ? Colors.white.withOpacity(0.06) : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -56,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header with logo + language toggle
+                        // Header
                         Row(
                           children: [
                             ClipRRect(
@@ -68,16 +103,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(l.appTitle,
-                                    style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
+                                  Text(l.appTitle, style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
                                   const SizedBox(height: 2),
-                                  Text(l.appSubtitle,
-                                    style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
+                                  Text(l.appSubtitle, style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
                                 ],
                               ),
                             ),
-                            // Language toggle
-                            GestureDetector(
+                            HoverEffect(
                               onTap: () => localeProvider.toggleLocale(),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -86,29 +118,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(color: Colors.white.withOpacity(0.3)),
                                 ),
-                                child: Text(
-                                  lang == 'sr' ? '🇬🇧 EN' : '🇷🇸 SR',
-                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
-                                ),
+                                child: Text(lang == 'sr' ? '🇬🇧 EN' : '🇷🇸 SR',
+                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
                               ),
                             ),
                           ],
                         ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.15, end: 0),
 
                         const SizedBox(height: 20),
-
-                        // Pretraga prodavnica dugme
                         _ShopSearchButton(l: l),
-
                         const SizedBox(height: 12),
-
-                        // Find a vet button
                         _FindVetButton(l: l),
-
                         const SizedBox(height: 12),
 
-                        // Provera simptoma dugme
-                        GestureDetector(
+                        // Provera simptoma
+                        HoverEffect(
                           onTap: () => Navigator.push(context,
                             MaterialPageRoute(builder: (_) => const SymptomCheckerScreen())),
                           child: Container(
@@ -124,8 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 const Icon(Icons.search_rounded, color: Colors.white, size: 22),
                                 const SizedBox(width: 10),
-                                Text(l.symptomChecker,
-                                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                                Text(l.symptomChecker, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                               ],
                             ),
                           ),
@@ -133,40 +156,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Izbor vrste
+                        // Pet type toggles
                         Wrap(
                           spacing: 10, runSpacing: 10,
-                          children: PetType.values.map((type) {
-                            return _PetToggle(
-                              label: _localizedPetType(type, l),
-                              isSelected: _selectedPet == type,
-                              onTap: () => setState(() { _selectedPet = type; _searchQuery = ''; }),
-                            );
-                          }).toList(),
+                          children: PetType.values.map((type) => _PetToggle(
+                            label: _localizedPetType(type, l),
+                            isSelected: _selectedPet == type,
+                            onTap: () => setState(() { _selectedPet = type; _searchQuery = ''; }),
+                          )).toList(),
                         ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
 
                         const SizedBox(height: 20),
 
-                        // Pretraga bolesti + naslov
                         Row(
                           children: [
-                            Text(l.healthConditions,
-                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
+                            Text(l.healthConditions, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
                             const Spacer(),
-                            Text('${_filteredConditions.length}',
-                              style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
+                            Text('${_filteredConditions.length}', style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
                           ],
                         ).animate().fadeIn(delay: 350.ms, duration: 400.ms),
 
                         const SizedBox(height: 10),
 
-                        // Search field
                         Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppColors.glassBorder),
-                          ),
+                          decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.glassBorder)),
                           child: TextField(
                             style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 15),
                             decoration: InputDecoration(
@@ -174,10 +187,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
                               prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 20),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            ),
-                            onChanged: (v) => setState(() => _searchQuery = v),
-                          ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
+                            onChanged: (v) => setState(() => _searchQuery = v)),
                         ).animate().fadeIn(delay: 380.ms, duration: 400.ms),
 
                         const SizedBox(height: 16),
@@ -195,11 +206,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: _ConditionCard(
-                            condition: condition,
-                            lang: lang,
+                            condition: condition, lang: lang,
                             onTap: () => Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => ConditionScreen(condition: condition))),
-                          ),
+                              MaterialPageRoute(builder: (_) => ConditionScreen(condition: condition)))),
                         ).animate()
                             .fadeIn(delay: Duration(milliseconds: 400 + index * 60), duration: 400.ms)
                             .slideY(begin: 0.1, end: 0);
@@ -231,9 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _GlowOrb extends StatelessWidget {
-  final Color color;
-  final double size;
-  final double opacity;
+  final Color color; final double size; final double opacity;
   const _GlowOrb({required this.color, required this.size, required this.opacity});
   @override
   Widget build(BuildContext context) {
@@ -243,59 +250,106 @@ class _GlowOrb extends StatelessWidget {
   }
 }
 
-class _PetToggle extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
+class _PetToggle extends StatefulWidget {
+  final String label; final bool isSelected; final VoidCallback onTap;
   const _PetToggle({required this.label, required this.isSelected, required this.onTap});
   @override
+  State<_PetToggle> createState() => _PetToggleState();
+}
+
+class _PetToggleState extends State<_PetToggle> {
+  bool _hovering = false;
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: isSelected ? AppColors.accent : AppColors.card,
-          boxShadow: isSelected ? [BoxShadow(color: AppColors.accent.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))] : null,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: widget.isSelected
+                ? AppColors.accent
+                : _hovering ? AppColors.card.withOpacity(0.8) : AppColors.card,
+            boxShadow: widget.isSelected
+                ? [BoxShadow(color: AppColors.accent.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))]
+                : _hovering
+                    ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))]
+                    : null,
+            border: _hovering && !widget.isSelected
+                ? Border.all(color: AppColors.primary.withOpacity(0.3))
+                : null,
+          ),
+          transform: _hovering && !widget.isSelected ? (Matrix4.identity()..scale(1.05)) : Matrix4.identity(),
+          child: Text(widget.label,
+            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600,
+              color: widget.isSelected ? Colors.white : _hovering ? AppColors.textPrimary : AppColors.textSecondary)),
         ),
-        child: Text(label,
-          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : AppColors.textSecondary)),
       ),
     );
   }
 }
 
-class _ConditionCard extends StatelessWidget {
-  final PetCondition condition;
-  final String lang;
-  final VoidCallback onTap;
+class _ConditionCard extends StatefulWidget {
+  final PetCondition condition; final String lang; final VoidCallback onTap;
   const _ConditionCard({required this.condition, required this.lang, required this.onTap});
   @override
+  State<_ConditionCard> createState() => _ConditionCardState();
+}
+
+class _ConditionCardState extends State<_ConditionCard> {
+  bool _hovering = false;
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: GlassCard(
-        padding: const EdgeInsets.all(18),
-        child: Row(
-          children: [
-            Container(width: 50, height: 50,
-              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
-              child: Center(child: Text(condition.icon, style: const TextStyle(fontSize: 26)))),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(localizedName(condition, lang), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                const SizedBox(height: 4),
-                Text(localizedDescription(condition, lang), maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted, height: 1.3)),
-              ]),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          transform: _hovering ? (Matrix4.identity()..translate(0.0, -2.0)) : Matrix4.identity(),
+          decoration: BoxDecoration(
+            color: _hovering ? AppColors.card.withOpacity(0.95) : AppColors.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _hovering ? AppColors.primary.withOpacity(0.3) : const Color(0x0A000000)),
+            boxShadow: [
+              BoxShadow(
+                color: _hovering ? AppColors.primary.withOpacity(0.12) : Colors.black.withOpacity(0.06),
+                blurRadius: _hovering ? 20 : 12,
+                offset: Offset(0, _hovering ? 8 : 4)),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              children: [
+                Container(width: 50, height: 50,
+                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
+                  child: Center(child: Text(widget.condition.icon, style: const TextStyle(fontSize: 26)))),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(localizedName(widget.condition, widget.lang), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    const SizedBox(height: 4),
+                    Text(localizedDescription(widget.condition, widget.lang), maxLines: 2, overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted, height: 1.3)),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  transform: _hovering ? (Matrix4.identity()..translate(4.0, 0.0)) : Matrix4.identity(),
+                  child: Icon(Icons.arrow_forward_ios_rounded,
+                    color: _hovering ? AppColors.primary : AppColors.textMuted, size: 16)),
+              ],
             ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 16),
-          ],
+          ),
         ),
       ),
     );
@@ -311,36 +365,42 @@ class _ShopSearchButton extends StatefulWidget {
 
 class _ShopSearchButtonState extends State<_ShopSearchButton> {
   bool _expanded = false;
+  bool _hovering = false;
 
   @override
   Widget build(BuildContext context) {
     final l = widget.l;
     return Column(
       children: [
-        GestureDetector(
-          onTap: () => setState(() => _expanded = !_expanded),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF1E3A5F), Color(0xFF2C5282)]),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: const Color(0xFF1E3A5F).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 22),
-                const SizedBox(width: 10),
-                Text(l.shopSearch,
-                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-                const SizedBox(width: 8),
-                AnimatedRotation(
-                  turns: _expanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 22),
-                ),
-              ],
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _hovering = true),
+          onExit: (_) => setState(() => _hovering = false),
+          child: GestureDetector(
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              transform: _hovering ? (Matrix4.identity()..scale(1.02)) : Matrix4.identity(),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: _hovering
+                    ? [const Color(0xFF254A73), const Color(0xFF3563A0)]
+                    : [const Color(0xFF1E3A5F), const Color(0xFF2C5282)]),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: const Color(0xFF1E3A5F).withOpacity(_hovering ? 0.5 : 0.3), blurRadius: _hovering ? 20 : 16, offset: const Offset(0, 6))],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 22),
+                  const SizedBox(width: 10),
+                  Text(l.shopSearch, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                  const SizedBox(width: 8),
+                  AnimatedRotation(turns: _expanded ? 0.5 : 0, duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 22)),
+                ],
+              ),
             ),
           ),
         ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
@@ -348,21 +408,19 @@ class _ShopSearchButtonState extends State<_ShopSearchButton> {
           firstChild: const SizedBox.shrink(),
           secondChild: Padding(
             padding: const EdgeInsets.only(top: 10),
-            child: Column(
-              children: [
-                _ShopTile(label: 'Pet Centar', icon: Icons.shopping_bag_outlined, color: const Color(0xFFE65100),
-                  onTap: () => html.window.open('https://www.pet-centar.rs/products/', '_blank')),
-                const SizedBox(height: 8),
-                _ShopTile(label: 'PetSpot', icon: Icons.shopping_bag_outlined, color: const Color(0xFF2E7D32),
-                  onTap: () => html.window.open('https://petspot.rs/catalogsearch/result/?q=', '_blank')),
-                const SizedBox(height: 8),
-                _ShopTile(label: 'Premium Pet', icon: Icons.shopping_bag_outlined, color: const Color(0xFF1565C0),
-                  onTap: () => html.window.open('https://www.premiumpet.rs/', '_blank')),
-                const SizedBox(height: 8),
-                _ShopTile(label: 'Ananas', icon: Icons.shopping_bag_outlined, color: const Color(0xFF6A1B9A),
-                  onTap: () => html.window.open('https://ananas.rs/search?query=hrana+za+ljubimce', '_blank')),
-              ],
-            ),
+            child: Column(children: [
+              _ShopTile(label: 'Pet Centar', icon: Icons.shopping_bag_outlined, color: const Color(0xFFE65100),
+                onTap: () => html.window.open('https://www.pet-centar.rs/products/', '_blank')),
+              const SizedBox(height: 8),
+              _ShopTile(label: 'PetSpot', icon: Icons.shopping_bag_outlined, color: const Color(0xFF2E7D32),
+                onTap: () => html.window.open('https://petspot.rs/catalogsearch/result/?q=', '_blank')),
+              const SizedBox(height: 8),
+              _ShopTile(label: 'Premium Pet', icon: Icons.shopping_bag_outlined, color: const Color(0xFF1565C0),
+                onTap: () => html.window.open('https://www.premiumpet.rs/', '_blank')),
+              const SizedBox(height: 8),
+              _ShopTile(label: 'Ananas', icon: Icons.shopping_bag_outlined, color: const Color(0xFF6A1B9A),
+                onTap: () => html.window.open('https://ananas.rs/search?query=hrana+za+ljubimce', '_blank')),
+            ]),
           ),
           crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 250),
@@ -372,34 +430,40 @@ class _ShopSearchButtonState extends State<_ShopSearchButton> {
   }
 }
 
-class _ShopTile extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
+class _ShopTile extends StatefulWidget {
+  final String label; final IconData icon; final Color color; final VoidCallback onTap;
   const _ShopTile({required this.label, required this.icon, required this.color, required this.onTap});
+  @override
+  State<_ShopTile> createState() => _ShopTileState();
+}
 
+class _ShopTileState extends State<_ShopTile> {
+  bool _hovering = false;
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 20),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          decoration: BoxDecoration(
+            color: widget.color.withOpacity(_hovering ? 0.2 : 0.12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: widget.color.withOpacity(_hovering ? 0.5 : 0.3)),
+            boxShadow: _hovering ? [BoxShadow(color: widget.color.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))] : null,
+          ),
+          transform: _hovering ? (Matrix4.identity()..translate(4.0, 0.0)) : Matrix4.identity(),
+          child: Row(children: [
+            Icon(widget.icon, color: widget.color, size: 20),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(label, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: color)),
-            ),
-            Icon(Icons.open_in_new_rounded, color: color.withOpacity(0.6), size: 16),
-          ],
+            Expanded(child: Text(widget.label, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: widget.color))),
+            Icon(Icons.open_in_new_rounded, color: widget.color.withOpacity(_hovering ? 0.9 : 0.6), size: 16),
+          ]),
         ),
       ),
     );
@@ -415,21 +479,17 @@ class _FindVetButton extends StatefulWidget {
 
 class _FindVetButtonState extends State<_FindVetButton> {
   bool _loading = false;
+  bool _hovering = false;
 
   void _findVet() {
     setState(() => _loading = true);
-
     html.window.navigator.geolocation.getCurrentPosition().then((position) {
       final lat = position.coords!.latitude;
       final lng = position.coords!.longitude;
       final query = Uri.encodeComponent('veterinar');
-      html.window.open(
-        'https://www.google.com/maps/search/$query/@$lat,$lng,14z',
-        '_blank',
-      );
+      html.window.open('https://www.google.com/maps/search/$query/@$lat,$lng,14z', '_blank');
       setState(() => _loading = false);
     }).catchError((_) {
-      // Fallback: open Google Maps search without coordinates
       final query = Uri.encodeComponent('veterinar near me');
       html.window.open('https://www.google.com/maps/search/$query', '_blank');
       setState(() => _loading = false);
@@ -439,27 +499,35 @@ class _FindVetButtonState extends State<_FindVetButton> {
   @override
   Widget build(BuildContext context) {
     final l = widget.l;
-    return GestureDetector(
-      onTap: _loading ? null : _findVet,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF059669), Color(0xFF10B981)]),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: const Color(0xFF059669).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_loading)
-              const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            else
-              const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 22),
-            const SizedBox(width: 10),
-            Text(l.findVetNearby,
-              style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-          ],
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: _loading ? null : _findVet,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          transform: _hovering ? (Matrix4.identity()..scale(1.02)) : Matrix4.identity(),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: _hovering
+                ? [const Color(0xFF06B07A), const Color(0xFF14D499)]
+                : [const Color(0xFF059669), const Color(0xFF10B981)]),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: const Color(0xFF059669).withOpacity(_hovering ? 0.5 : 0.3), blurRadius: _hovering ? 20 : 16, offset: const Offset(0, 6))],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_loading)
+                const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              else
+                const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 22),
+              const SizedBox(width: 10),
+              Text(l.findVetNearby, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+            ],
+          ),
         ),
       ),
     ).animate().fadeIn(delay: 270.ms, duration: 400.ms);

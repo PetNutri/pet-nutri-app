@@ -233,18 +233,33 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
   }
 }
 
-class _PetChip extends StatelessWidget {
+class _PetChip extends StatefulWidget {
   final String label; final bool isSelected; final VoidCallback onTap;
   const _PetChip({required this.label, required this.isSelected, required this.onTap});
   @override
+  State<_PetChip> createState() => _PetChipState();
+}
+
+class _PetChipState extends State<_PetChip> {
+  bool _hovering = false;
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(onTap: onTap,
-      child: AnimatedContainer(duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16),
-          color: isSelected ? AppColors.accent : AppColors.card,
-          boxShadow: isSelected ? [BoxShadow(color: AppColors.accent.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))] : null),
-        child: Text(label, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600,
-          color: isSelected ? Colors.white : AppColors.textSecondary))));
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(onTap: widget.onTap,
+        child: AnimatedContainer(duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          transform: _hovering && !widget.isSelected ? (Matrix4.identity()..scale(1.05)) : Matrix4.identity(),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16),
+            color: widget.isSelected ? AppColors.accent : _hovering ? AppColors.card.withOpacity(0.8) : AppColors.card,
+            boxShadow: widget.isSelected
+                ? [BoxShadow(color: AppColors.accent.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))]
+                : _hovering ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))] : null,
+            border: _hovering && !widget.isSelected ? Border.all(color: AppColors.primary.withOpacity(0.3)) : null),
+          child: Text(widget.label, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600,
+            color: widget.isSelected ? Colors.white : _hovering ? AppColors.textPrimary : AppColors.textSecondary)))));
   }
 }
+
