@@ -3,10 +3,10 @@ import 'pet_food_api.dart';
 
 class FoodScore {
   final PetFoodProduct product;
-  final int score; // 0-100
+  final int score;
   final List<String> pros;
   final List<String> cons;
-  final String rating; // "Odlično", "Dobro", "Prosečno", "Loše"
+  final String rating;
 
   FoodScore({
     required this.product,
@@ -19,45 +19,60 @@ class FoodScore {
 
 class FoodScorer {
   static FoodScore evaluate(PetFoodProduct product, PetCondition condition) {
-    int score = 50;
+    int score = 60; // Bazni skor — vecina hrane je "ok"
     final pros = <String>[];
     final cons = <String>[];
 
     final ingredientsLower = (product.ingredients ?? '').toLowerCase();
+    final nameLower = product.name.toLowerCase();
+    final brandLower = product.brand.toLowerCase();
+    final combined = '$ingredientsLower $nameLower $brandLower';
 
-    // Check good ingredients
+    // Bonus ako je veterinarska/medicinska hrana
+    if (combined.contains('veterinary') || combined.contains('prescription') ||
+        combined.contains('clinical') || combined.contains('medical') ||
+        combined.contains('diet') || combined.contains('health')) {
+      score += 10;
+      pros.add('Veterinarska/dijetetska formula');
+    }
+
+    // Provera dobrih sastojaka
+    int goodFound = 0;
     for (final good in condition.goodIngredients) {
-      if (ingredientsLower.contains(good.toLowerCase())) {
-        score += 8;
-        pros.add('Sadrži: $good');
+      if (combined.contains(good.toLowerCase())) {
+        goodFound++;
+        if (goodFound <= 4) pros.add('Sadrzi: $good');
       }
     }
+    score += (goodFound * 6).clamp(0, 30);
 
-    // Check bad ingredients
+    // Provera losih sastojaka
+    int badFound = 0;
     for (final bad in condition.badIngredients) {
-      if (ingredientsLower.contains(bad.toLowerCase())) {
-        score -= 12;
-        cons.add('Sadrži: $bad');
+      if (combined.contains(bad.toLowerCase())) {
+        badFound++;
+        if (badFound <= 3) cons.add('Sadrzi: $bad');
       }
     }
+    score -= (badFound * 10).clamp(0, 40);
 
-    // Check nutrient guidelines
-    for (final g in condition.guidelines) {
-      _evaluateNutrient(g, product, score, pros, cons).then((result) {
-        score = result.$1;
-      });
-    }
-
-    // Evaluate based on nutriments directly
+    // Bonus za nutritivne vrednosti
     score += _evaluateNutriments(product, condition, pros, cons);
+
+    // Ako nema sastojaka uopste, ne mozemo oceniti — neutralno
+    if (ingredientsLower.isEmpty && product.nutriments == null) {
+      if (pros.isEmpty && cons.isEmpty) {
+        pros.add('Nedovoljno podataka za detaljnu ocenu');
+      }
+    }
 
     score = score.clamp(0, 100);
 
     final rating = switch (score) {
-      >= 75 => 'Odlično',
+      >= 75 => 'Preporuceno',
       >= 55 => 'Dobro',
-      >= 35 => 'Prosečno',
-      _ => 'Loše',
+      >= 35 => 'Prosecno',
+      _ => 'Ne preporucuje se',
     };
 
     return FoodScore(
@@ -67,16 +82,6 @@ class FoodScorer {
       cons: cons.toSet().toList(),
       rating: rating,
     );
-  }
-
-  static Future<(int,)> _evaluateNutrient(
-    DietaryGuideline g,
-    PetFoodProduct product,
-    int score,
-    List<String> pros,
-    List<String> cons,
-  ) async {
-    return (score,);
   }
 
   static int _evaluateNutriments(
@@ -96,11 +101,16 @@ class FoodScorer {
         if (fat != null) {
           if (rec == 'low' || rec == 'avoid') {
             if (fat < 8) {
-              bonus += 10;
-              pros.add('Nisko masnoće (${fat.toStringAsFixed(1)}g/100g)');
+              bonus += 8;
+              pros.add('Nisko masti (${fat.toStringAsFixed(1)}g/100g)');
             } else if (fat > 15) {
-              bonus -= 10;
-              cons.add('Visoko masnoće (${fat.toStringAsFixed(1)}g/100g)');
+              bonus -= 8;
+              cons.add('Visoko masti (${fat.toStringAsFixed(1)}g/100g)');
+            }
+          } else if (rec == 'high') {
+            if (fat > 12) {
+              bonus += 6;
+              pros.add('Dobar sadrzaj masti (${fat.toStringAsFixed(1)}g/100g)');
             }
           }
         }
@@ -110,17 +120,17 @@ class FoodScorer {
         final protein = product.proteinPer100g;
         if (protein != null) {
           if (rec == 'high') {
-            if (protein > 25) {
+            if (protein > 20) {
               bonus += 8;
               pros.add('Visok protein (${protein.toStringAsFixed(1)}g/100g)');
             }
-          } else if (rec == 'low') {
-            if (protein < 20) {
-              bonus += 8;
+          } else if (rec == 'low' || rec == 'moderate') {
+            if (protein < 22) {
+              bonus += 6;
               pros.add('Umeren protein (${protein.toStringAsFixed(1)}g/100g)');
-            } else if (protein > 30) {
-              bonus -= 8;
-              cons.add('Previše proteina (${protein.toStringAsFixed(1)}g/100g)');
+            } else if (protein > 35) {
+              bonus -= 6;
+              cons.add('Previse proteina (${protein.toStringAsFixed(1)}g/100g)');
             }
           }
         }
@@ -129,7 +139,7 @@ class FoodScorer {
       if (nutrient.contains('vlakna') || nutrient.contains('fiber')) {
         final fiber = product.fiberPer100g;
         if (fiber != null && rec == 'high') {
-          if (fiber > 3) {
+          if (fiber > 2) {
             bonus += 6;
             pros.add('Dobra vlakna (${fiber.toStringAsFixed(1)}g/100g)');
           }
@@ -144,7 +154,20 @@ class FoodScorer {
             pros.add('Nisko soli (${salt.toStringAsFixed(2)}g/100g)');
           } else if (salt > 1.5) {
             bonus -= 8;
-            cons.add('Previše soli (${salt.toStringAsFixed(2)}g/100g)');
+            cons.add('Previse soli (${salt.toStringAsFixed(2)}g/100g)');
+          }
+        }
+      }
+
+      if (nutrient.contains('kalorij') || nutrient.contains('energy')) {
+        final kcal = product.energyKcal;
+        if (kcal != null && rec == 'low') {
+          if (kcal < 300) {
+            bonus += 6;
+            pros.add('Niskokaloricno (${kcal.toStringAsFixed(0)} kcal/100g)');
+          } else if (kcal > 400) {
+            bonus -= 6;
+            cons.add('Visokokaloricno (${kcal.toStringAsFixed(0)} kcal/100g)');
           }
         }
       }
