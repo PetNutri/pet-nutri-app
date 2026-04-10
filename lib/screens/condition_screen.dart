@@ -18,18 +18,52 @@ class ConditionScreen extends StatefulWidget {
 
 class _ConditionScreenState extends State<ConditionScreen> {
   final _searchController = TextEditingController();
-  List<FoodScore>? _results;
+  List<FoodScore> _allResults = [];
+  List<FoodScore> _filteredResults = [];
   bool _loading = false;
+  bool _initialLoaded = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.condition.affectedSpecies.contains(PetType.dog) ||
+        widget.condition.affectedSpecies.contains(PetType.cat)) {
+      _loadInitialFood();
+    }
+  }
+
+  Future<void> _loadInitialFood() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      // Ucitaj popularnu hranu za ljubimce
+      final products = await PetFoodApi.search('pet food');
+      final scores = products
+          .map((p) => FoodScorer.evaluate(p, widget.condition))
+          .toList()
+        ..sort((a, b) => b.score.compareTo(a.score));
+      setState(() {
+        _allResults = scores;
+        _filteredResults = scores;
+        _loading = false;
+        _initialLoaded = true;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Greska pri ucitavanju. Proveri internet konekciju.';
+        _loading = false;
+      });
+    }
+  }
 
   Future<void> _search() async {
     final query = _searchController.text.trim();
-    if (query.isEmpty) return;
+    if (query.isEmpty) {
+      setState(() => _filteredResults = _allResults);
+      return;
+    }
 
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() { _loading = true; _error = null; });
 
     try {
       final products = await PetFoodApi.search(query);
@@ -39,7 +73,7 @@ class _ConditionScreenState extends State<ConditionScreen> {
         ..sort((a, b) => b.score.compareTo(a.score));
 
       setState(() {
-        _results = scores;
+        _filteredResults = scores;
         _loading = false;
       });
     } catch (e) {
@@ -363,7 +397,7 @@ class _ConditionScreenState extends State<ConditionScreen> {
                           ),
                         ),
 
-                      if (_results != null && _results!.isEmpty)
+                      if (_initialLoaded && _filteredResults.isEmpty && !_loading)
                         Padding(
                           padding: const EdgeInsets.all(32),
                           child: Text(
@@ -376,8 +410,8 @@ class _ConditionScreenState extends State<ConditionScreen> {
                           ),
                         ),
 
-                      if (_results != null)
-                        ...(_results!.asMap().entries.map((entry) {
+                      if (_filteredResults.isNotEmpty)
+                        ...(_filteredResults.asMap().entries.map((entry) {
                           final fs = entry.value;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
