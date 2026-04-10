@@ -168,12 +168,10 @@ class _ConditionScreenState extends State<ConditionScreen> {
                           child: GlassCard(
                             padding: const EdgeInsets.all(14),
                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Row(children: [
-                                _RecommendationBadge(g.recommendation, l),
-                                const SizedBox(width: 10),
-                                Expanded(child: Text(g.nutrient, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary))),
-                              ]),
+                              _RecommendationBadge(g.recommendation, l),
                               const SizedBox(height: 8),
+                              Text(g.nutrient, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                              const SizedBox(height: 4),
                               Text(g.reason, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted, height: 1.3)),
                             ]),
                           ),
