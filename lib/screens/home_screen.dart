@@ -35,9 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           Positioned(top: -60, right: -40,
-            child: _GlowOrb(color: AppColors.primary, size: 220, opacity: 0.08)),
+            child: _GlowOrb(color: Colors.white, size: 220, opacity: 0.1)),
           Positioned(bottom: 80, left: -60,
-            child: _GlowOrb(color: AppColors.accent, size: 180, opacity: 0.06)),
+            child: _GlowOrb(color: Colors.white, size: 180, opacity: 0.08)),
           SafeArea(
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
@@ -60,10 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('PetNutri',
-                                  style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                                  style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
                                 const SizedBox(height: 2),
                                 Text('Pronadji najbolju hranu za ljubimca',
-                                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+                                  style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
                               ],
                             ),
                           ],
@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         // Gde kupiti sekcija
                         Text('Gde kupiti',
-                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                         ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
                         const SizedBox(height: 10),
                         SingleChildScrollView(
@@ -141,10 +141,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           children: [
                             Text('Zdravstvena stanja',
-                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
                             const Spacer(),
                             Text('${_filteredConditions.length}',
-                              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted)),
+                              style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
                           ],
                         ).animate().fadeIn(delay: 350.ms, duration: 400.ms),
 
