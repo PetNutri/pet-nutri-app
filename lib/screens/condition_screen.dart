@@ -210,14 +210,17 @@ class _ConditionScreenState extends State<ConditionScreen> {
                               hintText: l.searchFoodPlaceholder,
                               hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
                               prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 20),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 18),
+                                      onPressed: () { _searchController.clear(); _onSearchChanged(''); })
+                                  : null,
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
-                            onChanged: _onSearchChanged)),
+                            onChanged: (v) { _onSearchChanged(v); setState(() {}); })),
                         const SizedBox(height: 20),
                         if (_filteredResults.isNotEmpty)
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(children: [
+                          _ScrollableRow(
+                            children: [
                               _FilterChip(label: l.all, isSelected: _scoreFilter == 'all', onTap: () => setState(() => _scoreFilter = 'all')),
                               const SizedBox(width: 8),
                               _FilterChip(label: '⭐ ${l.recommended}', isSelected: _scoreFilter == 'recommended', color: AppColors.success, onTap: () => setState(() => _scoreFilter = 'recommended')),
@@ -227,7 +230,8 @@ class _ConditionScreenState extends State<ConditionScreen> {
                               _FilterChip(label: l.average, isSelected: _scoreFilter == 'average', color: AppColors.warning, onTap: () => setState(() => _scoreFilter = 'average')),
                               const SizedBox(width: 8),
                               _FilterChip(label: '✕ ${l.avoid}', isSelected: _scoreFilter == 'bad', color: AppColors.danger, onTap: () => setState(() => _scoreFilter = 'bad')),
-                            ])),
+                            ],
+                          ),
                         const SizedBox(height: 12),
                         if (_loading) const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: AppColors.primary))),
                         if (_error != null) Padding(padding: const EdgeInsets.all(16), child: Text(_error!, textAlign: TextAlign.center, style: GoogleFonts.inter(color: AppColors.danger, fontSize: 14))),
@@ -339,7 +343,7 @@ class _FoodResultCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text('${l.whereToBuy}:', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
           const SizedBox(height: 6),
-          _ScrollableShopRow(
+          _ScrollableRow(
             children: [
               _ShopButton(label: 'Pet Centar', color: const Color(0xFFE65100), onTap: () {
                 final brand = product.brand;
@@ -431,14 +435,14 @@ class _FilterChipState extends State<_FilterChip> {
   }
 }
 
-class _ScrollableShopRow extends StatefulWidget {
+class _ScrollableRow extends StatefulWidget {
   final List<Widget> children;
-  const _ScrollableShopRow({required this.children});
+  const _ScrollableRow({required this.children});
   @override
-  State<_ScrollableShopRow> createState() => _ScrollableShopRowState();
+  State<_ScrollableRow> createState() => _ScrollableRowState();
 }
 
-class _ScrollableShopRowState extends State<_ScrollableShopRow> {
+class _ScrollableRowState extends State<_ScrollableRow> {
   final _scrollController = ScrollController();
   bool _showArrow = true;
 
@@ -446,6 +450,14 @@ class _ScrollableShopRowState extends State<_ScrollableShopRow> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkOverflow());
+  }
+
+  void _checkOverflow() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.maxScrollExtent <= 0) {
+      setState(() => _showArrow = false);
+    }
   }
 
   void _onScroll() {

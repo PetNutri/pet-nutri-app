@@ -20,6 +20,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
   final Set<String> _selectedSymptoms = {};
   List<PetCondition> _results = [];
   String _searchQuery = '';
+  final _symptomSearchController = TextEditingController();
 
   List<String> get _allSymptoms {
     final lang = localeProvider.locale.languageCode;
@@ -127,11 +128,16 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
                       Container(
                         decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.glassBorder)),
                         child: TextField(
+                          controller: _symptomSearchController,
                           style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 15),
                           decoration: InputDecoration(
                             hintText: l.searchSymptoms,
                             hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
                             prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 18),
+                                    onPressed: () { _symptomSearchController.clear(); setState(() => _searchQuery = ''); })
+                                : null,
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
                           onChanged: (v) => setState(() => _searchQuery = v)),

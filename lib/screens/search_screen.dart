@@ -94,7 +94,11 @@ class _SearchScreenState extends State<SearchScreen> {
                             horizontal: 16,
                             vertical: 14,
                           ),
-                          suffixIcon: IconButton(
+                          suffixIcon: _controller.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 18),
+                                onPressed: () { _controller.clear(); setState(() => _results = null); })
+                            : IconButton(
                             icon: const Icon(
                               Icons.search_rounded,
                               color: AppColors.primary,
@@ -103,6 +107,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                         onSubmitted: (_) => _search(),
+                        onChanged: (_) => setState(() {}),
                       ),
                     ),
                   ),

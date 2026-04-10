@@ -57,6 +57,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   PetType _selectedPet = PetType.dog;
   String _searchQuery = '';
+  final _searchController = TextEditingController();
 
   List<PetCondition> get _filteredConditions {
     final lang = localeProvider.locale.languageCode;
@@ -181,11 +182,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.glassBorder)),
                           child: TextField(
+                            controller: _searchController,
                             style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 15),
                             decoration: InputDecoration(
                               hintText: l.searchConditions,
                               hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
                               prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 20),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 18),
+                                      onPressed: () { _searchController.clear(); setState(() => _searchQuery = ''); })
+                                  : null,
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
                             onChanged: (v) => setState(() => _searchQuery = v)),
