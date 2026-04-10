@@ -299,9 +299,9 @@ class _PetChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: isSelected ? AppColors.primary : AppColors.card,
+          color: isSelected ? AppColors.accent : AppColors.card,
           boxShadow: isSelected ? [
-            BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
+            BoxShadow(color: AppColors.accent.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
           ] : null,
         ),
         child: Text(label,

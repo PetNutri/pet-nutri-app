@@ -3,21 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  // Premium svetla tema sa jakim kontrastom
-  static const background = Color(0xFFF8F7F4);     // topla bela
-  static const surface = Color(0xFFFFFFFF);
-  static const card = Color(0xFFFFFFFF);
-  static const primary = Color(0xFF4A3ABA);         // duboka ljubicasta
+  static const background = Color(0xFFEDE7F6);     // svetla ljubicasta pozadina
+  static const surface = Color(0xFFFFF3E0);         // svetlo narandzasta povrsina
+  static const card = Color(0xFFFFF3E0);            // svetlo narandzaste kartice
+  static const primary = Color(0xFF5E35B1);         // ljubicasta
   static const primaryLight = Color(0xFF7C6DD8);
-  static const accent = Color(0xFF0D9488);          // teal
-  static const warning = Color(0xFFD97706);         // tamni amber
-  static const danger = Color(0xFFDC2626);          // crvena
-  static const success = Color(0xFF059669);         // emerald
-  static const textPrimary = Color(0xFF111827);     // skoro crna
-  static const textSecondary = Color(0xFF374151);   // tamno siva
-  static const textMuted = Color(0xFF6B7280);       // srednja siva
-  static const glassBorder = Color(0x12000000);
-  static const glassBackground = Color(0x06000000);
+  static const accent = Color(0xFFE65100);          // jako narandzasta za zivotinje
+  static const warning = Color(0xFFD97706);
+  static const danger = Color(0xFFDC2626);
+  static const success = Color(0xFF059669);
+  static const textPrimary = Color(0xFF1A1A2E);
+  static const textSecondary = Color(0xFF374151);
+  static const textMuted = Color(0xFF6B7280);
+  static const glassBorder = Color(0x15000000);
+  static const glassBackground = Color(0x08000000);
 }
 
 class AppTheme {
