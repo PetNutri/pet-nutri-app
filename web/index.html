@@ -31,39 +31,8 @@
 
   <title>PetNutri</title>
   <link rel="manifest" href="manifest.json">
-  <style>
-    #lang-toggle {
-      position: fixed;
-      top: 14px;
-      right: 14px;
-      z-index: 9999;
-      background: rgba(255,255,255,0.95);
-      border-radius: 12px;
-      padding: 8px 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-      cursor: pointer;
-      border: none;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: transform 0.15s;
-    }
-    #lang-toggle:hover { transform: scale(1.05); }
-    #lang-toggle:active { transform: scale(0.97); }
-  </style>
 </head>
 <body>
-  <button id="lang-toggle" onclick="translatePage()">🌐 English</button>
   <script src="flutter_bootstrap.js" async></script>
-  <script>
-    function translatePage() {
-      var currentUrl = window.location.href;
-      window.open('https://translate.google.com/translate?sl=sr&tl=en&u=' + encodeURIComponent(currentUrl), '_blank');
-    }
-  </script>
 </body>
 </html>
