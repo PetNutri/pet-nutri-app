@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 import '../services/pet_food_api.dart';
 import '../theme/app_theme.dart';
 
@@ -84,7 +85,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           fontSize: 15,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Pretraži hranu...',
+                          hintText: AppLocalizations.of(context).searchFoodTitle,
                           hintStyle: GoogleFonts.inter(
                             color: AppColors.textMuted,
                           ),
@@ -130,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Ukucaj naziv hrane za ljubimce',
+                        AppLocalizations.of(context).typeFoodName,
                         style: GoogleFonts.inter(
                           color: AppColors.textMuted,
                           fontSize: 15,
@@ -144,7 +145,7 @@ class _SearchScreenState extends State<SearchScreen> {
               Expanded(
                 child: Center(
                   child: Text(
-                    'Nema rezultata',
+                    AppLocalizations.of(context).noResults,
                     style: GoogleFonts.inter(
                       color: AppColors.textMuted,
                       fontSize: 15,

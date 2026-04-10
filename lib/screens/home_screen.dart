@@ -3,6 +3,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:html' as html;
 import '../data/conditions_database.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/localized_condition.dart';
+import '../l10n/locale_provider.dart';
+import '../main.dart';
 import '../theme/app_theme.dart';
 import '../utils/text_utils.dart';
 import 'condition_screen.dart';
@@ -20,17 +24,21 @@ class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
 
   List<PetCondition> get _filteredConditions {
+    final lang = localeProvider.locale.languageCode;
     final bySpecies = allConditions
         .where((c) => c.affectedSpecies.contains(_selectedPet))
         .toList();
     if (_searchQuery.isEmpty) return bySpecies;
     return bySpecies
-        .where((c) => containsNormalized(c.name, _searchQuery))
+        .where((c) => containsNormalized(localizedName(c, lang), _searchQuery))
         .toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final lang = l.lang;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -48,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header with logo
+                        // Header with logo + language toggle
                         Row(
                           children: [
                             ClipRRect(
@@ -56,15 +64,33 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Image.asset('assets/images/logo.png', width: 48, height: 48),
                             ),
                             const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('PetNutri',
-                                  style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
-                                const SizedBox(height: 2),
-                                Text('Pronadji najbolju hranu za ljubimca',
-                                  style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
-                              ],
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(l.appTitle,
+                                    style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
+                                  const SizedBox(height: 2),
+                                  Text(l.appSubtitle,
+                                    style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
+                                ],
+                              ),
+                            ),
+                            // Language toggle
+                            GestureDetector(
+                              onTap: () => localeProvider.toggleLocale(),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                ),
+                                child: Text(
+                                  lang == 'sr' ? '🇬🇧 EN' : '🇷🇸 SR',
+                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                                ),
+                              ),
                             ),
                           ],
                         ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.15, end: 0),
@@ -72,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 20),
 
                         // Gde kupiti sekcija
-                        Text('Gde kupiti',
+                        Text(l.whereToBuy,
                           style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                         ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
                         const SizedBox(height: 10),
@@ -114,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 const Icon(Icons.search_rounded, color: Colors.white, size: 22),
                                 const SizedBox(width: 10),
-                                Text('Provera simptoma',
+                                Text(l.symptomChecker,
                                   style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                               ],
                             ),
@@ -128,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           spacing: 10, runSpacing: 10,
                           children: PetType.values.map((type) {
                             return _PetToggle(
-                              label: petTypeLabel(type),
+                              label: _localizedPetType(type, l),
                               isSelected: _selectedPet == type,
                               onTap: () => setState(() { _selectedPet = type; _searchQuery = ''; }),
                             );
@@ -140,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         // Pretraga bolesti + naslov
                         Row(
                           children: [
-                            Text('Zdravstvena stanja',
+                            Text(l.healthConditions,
                               style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
                             const Spacer(),
                             Text('${_filteredConditions.length}',
@@ -160,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: TextField(
                             style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 15),
                             decoration: InputDecoration(
-                              hintText: 'Pretrazi bolesti...',
+                              hintText: l.searchConditions,
                               hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
                               prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 20),
                               border: InputBorder.none,
@@ -186,6 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: _ConditionCard(
                             condition: condition,
+                            lang: lang,
                             onTap: () => Navigator.push(context,
                               MaterialPageRoute(builder: (_) => ConditionScreen(condition: condition))),
                           ),
@@ -204,6 +231,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  String _localizedPetType(PetType type, AppLocalizations l) {
+    switch (type) {
+      case PetType.dog: return l.dogs;
+      case PetType.cat: return l.cats;
+      case PetType.rabbit: return l.rabbits;
+      case PetType.rodent: return l.rodents;
+      case PetType.bird: return l.birds;
+      case PetType.terrarium: return l.terrarium;
+      case PetType.aquarium: return l.aquarium;
+    }
   }
 }
 
@@ -247,8 +286,9 @@ class _PetToggle extends StatelessWidget {
 
 class _ConditionCard extends StatelessWidget {
   final PetCondition condition;
+  final String lang;
   final VoidCallback onTap;
-  const _ConditionCard({required this.condition, required this.onTap});
+  const _ConditionCard({required this.condition, required this.lang, required this.onTap});
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -263,9 +303,9 @@ class _ConditionCard extends StatelessWidget {
             const SizedBox(width: 16),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(condition.name, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(localizedName(condition, lang), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 4),
-                Text(condition.description, maxLines: 2, overflow: TextOverflow.ellipsis,
+                Text(localizedDescription(condition, lang), maxLines: 2, overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted, height: 1.3)),
               ]),
             ),

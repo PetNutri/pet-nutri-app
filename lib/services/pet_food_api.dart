@@ -23,8 +23,8 @@ class PetFoodProduct {
 
   factory PetFoodProduct.fromJson(Map<String, dynamic> json) {
     return PetFoodProduct(
-      name: json['product_name'] ?? json['product_name_en'] ?? 'Nepoznat proizvod',
-      brand: json['brands'] ?? 'Nepoznat brend',
+      name: json['product_name'] ?? json['product_name_en'] ?? 'Unknown product',
+      brand: json['brands'] ?? 'Unknown brand',
       imageUrl: json['image_front_small_url'] ?? json['image_url'],
       ingredients: json['ingredients_text'] ?? json['ingredients_text_en'],
       nutriments: json['nutriments'] as Map<String, dynamic>?,
@@ -67,7 +67,7 @@ class PetFoodApi {
 
     return products
         .map((p) => PetFoodProduct.fromJson(p as Map<String, dynamic>))
-        .where((p) => p.name.isNotEmpty && p.name != 'Nepoznat proizvod')
+        .where((p) => p.name.isNotEmpty && p.name != 'Unknown product')
         .toList();
   }
 }
