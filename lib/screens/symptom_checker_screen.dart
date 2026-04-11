@@ -99,13 +99,28 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(children: [
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: GlassCard(padding: const EdgeInsets.all(10), borderRadius: 14,
-                        child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textSecondary, size: 18))),
-                    const SizedBox(width: 12),
-                    Text(l.symptomChecker, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                      onTap: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          ClipRRect(borderRadius: BorderRadius.circular(10),
+                            child: Image.asset('assets/images/logo.png', width: 32, height: 32)),
+                          const SizedBox(width: 8),
+                          Text(l.appTitle, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                        ]),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: GlassCard(padding: const EdgeInsets.all(10), borderRadius: 14,
+                          child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textSecondary, size: 18))),
+                      const SizedBox(width: 12),
+                      Text(l.symptomChecker, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                    ]),
                   ]),
                 ),
                 Expanded(

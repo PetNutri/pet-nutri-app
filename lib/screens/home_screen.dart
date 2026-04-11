@@ -10,6 +10,7 @@ import '../main.dart';
 import '../theme/app_theme.dart';
 import '../utils/text_utils.dart';
 import 'condition_screen.dart';
+import 'search_screen.dart';
 import 'symptom_checker_screen.dart';
 
 /// Reusable hover wrapper — scales up slightly and changes opacity on hover.
@@ -63,7 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final lang = localeProvider.locale.languageCode;
     final bySpecies = allConditions
         .where((c) => c.affectedSpecies.contains(_selectedPet))
-        .toList();
+        .toList()
+      ..sort((a, b) => localizedName(a, lang).compareTo(localizedName(b, lang)));
     if (_searchQuery.isEmpty) return bySpecies;
     return bySpecies
         .where((c) => containsNormalized(localizedName(c, lang), _searchQuery))
@@ -99,23 +101,24 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () => Navigator.of(context).popUntil((route) => route.isFirst),
                               child: MouseRegion(
                                 cursor: SystemMouseCursors.click,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.asset('assets/images/logo.png', width: 48, height: 48),
-                                ),
+                                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.asset('assets/images/logo.png', width: 48, height: 48),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(l.appTitle, style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
+                                      const SizedBox(height: 2),
+                                      Text(l.appSubtitle, style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
+                                    ],
+                                  ),
+                                ]),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(l.appTitle, style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
-                                  const SizedBox(height: 2),
-                                  Text(l.appSubtitle, style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
-                                ],
-                              ),
-                            ),
+                            const Spacer(),
                             HoverEffect(
                               onTap: () => localeProvider.toggleLocale(),
                               child: Container(
@@ -159,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 12),
                         _FindVetButton(l: l),
                         const SizedBox(height: 12),
-                        _ShopSearchButton(l: l),
+                        _ShopSearchButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()))),
 
                         const SizedBox(height: 24),
 
@@ -363,117 +366,32 @@ class _ConditionCardState extends State<_ConditionCard> {
   }
 }
 
-class _ShopSearchButton extends StatefulWidget {
+class _ShopSearchButton extends StatelessWidget {
   final AppLocalizations l;
-  const _ShopSearchButton({required this.l});
-  @override
-  State<_ShopSearchButton> createState() => _ShopSearchButtonState();
-}
-
-class _ShopSearchButtonState extends State<_ShopSearchButton> {
-  bool _expanded = false;
-  bool _hovering = false;
-
+  final VoidCallback onTap;
+  const _ShopSearchButton({required this.l, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    final l = widget.l;
-    return Column(
-      children: [
-        MouseRegion(
-          cursor: SystemMouseCursors.click,
-          onEnter: (_) => setState(() => _hovering = true),
-          onExit: (_) => setState(() => _hovering = false),
-          child: GestureDetector(
-            onTap: () => setState(() => _expanded = !_expanded),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              transform: _hovering ? (Matrix4.identity()..scale(1.02)) : Matrix4.identity(),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: _hovering
-                    ? [const Color(0xFF254A73), const Color(0xFF3563A0)]
-                    : [const Color(0xFF1E3A5F), const Color(0xFF2C5282)]),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: const Color(0xFF1E3A5F).withOpacity(_hovering ? 0.5 : 0.3), blurRadius: _hovering ? 20 : 16, offset: const Offset(0, 6))],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 22),
-                  const SizedBox(width: 10),
-                  Text(l.shopSearch, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-                  const SizedBox(width: 8),
-                  AnimatedRotation(turns: _expanded ? 0.5 : 0, duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 22)),
-                ],
-              ),
-            ),
-          ),
-        ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-        AnimatedCrossFade(
-          firstChild: const SizedBox.shrink(),
-          secondChild: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Column(children: [
-              _ShopTile(label: 'Pet Centar', icon: Icons.shopping_bag_outlined, color: const Color(0xFFE65100),
-                onTap: () => html.window.open('https://www.pet-centar.rs/products/', '_blank')),
-              const SizedBox(height: 8),
-              _ShopTile(label: 'PetSpot', icon: Icons.shopping_bag_outlined, color: const Color(0xFF2E7D32),
-                onTap: () => html.window.open('https://petspot.rs/catalogsearch/result/?q=', '_blank')),
-              const SizedBox(height: 8),
-              _ShopTile(label: 'Premium Pet', icon: Icons.shopping_bag_outlined, color: const Color(0xFF1565C0),
-                onTap: () => html.window.open('https://www.premiumpet.rs/', '_blank')),
-              const SizedBox(height: 8),
-              _ShopTile(label: 'Ananas', icon: Icons.shopping_bag_outlined, color: const Color(0xFF6A1B9A),
-                onTap: () => html.window.open('https://ananas.rs/search?query=hrana+za+ljubimce', '_blank')),
-            ]),
-          ),
-          crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-          duration: const Duration(milliseconds: 250),
+    return HoverEffect(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [Color(0xFF1E3A5F), Color(0xFF2C5282)]),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: const Color(0xFF1E3A5F).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
         ),
-      ],
-    );
-  }
-}
-
-class _ShopTile extends StatefulWidget {
-  final String label; final IconData icon; final Color color; final VoidCallback onTap;
-  const _ShopTile({required this.label, required this.icon, required this.color, required this.onTap});
-  @override
-  State<_ShopTile> createState() => _ShopTileState();
-}
-
-class _ShopTileState extends State<_ShopTile> {
-  bool _hovering = false;
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          decoration: BoxDecoration(
-            color: widget.color.withOpacity(_hovering ? 0.2 : 0.12),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: widget.color.withOpacity(_hovering ? 0.5 : 0.3)),
-            boxShadow: _hovering ? [BoxShadow(color: widget.color.withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))] : null,
-          ),
-          transform: _hovering ? (Matrix4.identity()..translate(4.0, 0.0)) : Matrix4.identity(),
-          child: Row(children: [
-            Icon(widget.icon, color: widget.color, size: 20),
-            const SizedBox(width: 12),
-            Expanded(child: Text(widget.label, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: widget.color))),
-            Icon(Icons.open_in_new_rounded, color: widget.color.withOpacity(_hovering ? 0.9 : 0.6), size: 16),
-          ]),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 22),
+            const SizedBox(width: 10),
+            Text(l.shopSearch, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+          ],
         ),
       ),
-    );
+    ).animate().fadeIn(delay: 280.ms, duration: 400.ms);
   }
 }
 
