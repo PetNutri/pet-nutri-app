@@ -95,9 +95,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         // Header
                         Row(
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.asset('assets/images/logo.png', width: 48, height: 48),
+                            GestureDetector(
+                              onTap: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.asset('assets/images/logo.png', width: 48, height: 48),
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -127,10 +133,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.15, end: 0),
 
                         const SizedBox(height: 20),
-                        _ShopSearchButton(l: l),
-                        const SizedBox(height: 12),
-                        _FindVetButton(l: l),
-                        const SizedBox(height: 12),
 
                         // Provera simptoma
                         HoverEffect(
@@ -153,7 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
-                        ).animate().fadeIn(delay: 250.ms, duration: 400.ms),
+                        ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+                        const SizedBox(height: 12),
+                        _FindVetButton(l: l),
+                        const SizedBox(height: 12),
+                        _ShopSearchButton(l: l),
 
                         const SizedBox(height: 24),
 
@@ -169,13 +175,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         const SizedBox(height: 20),
 
-                        Row(
-                          children: [
-                            Text(l.healthConditions, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
-                            const Spacer(),
-                            Text('${_filteredConditions.length}', style: GoogleFonts.inter(fontSize: 14, color: Colors.white70)),
-                          ],
-                        ).animate().fadeIn(delay: 350.ms, duration: 400.ms),
+                        Text(l.healthConditions, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white))
+                          .animate().fadeIn(delay: 350.ms, duration: 400.ms),
 
                         const SizedBox(height: 10),
 
