@@ -122,12 +122,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(width: 10),
                             Expanded(child: ClipRRect(
                               borderRadius: BorderRadius.circular(14),
-                              child: SizedBox(
-                                height: 96,
-                                child: FittedBox(
-                                  fit: BoxFit.cover,
-                                  clipBehavior: Clip.hardEdge,
-                                  child: Image.asset('assets/images/banner.png'))))),
+                              child: Image.asset('assets/images/banner.png',
+                                height: 56,
+                                fit: BoxFit.contain))),
                             const SizedBox(width: 10),
                             HoverEffect(
                               onTap: () => localeProvider.toggleLocale(),
