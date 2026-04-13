@@ -119,10 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ]),
                               ),
                             ),
-                            Expanded(child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: Image.asset('assets/images/banner.png',
-                                fit: BoxFit.contain))),
+                            const Spacer(),
                             HoverEffect(
                               onTap: () => localeProvider.toggleLocale(),
                               child: Container(
