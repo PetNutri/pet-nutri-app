@@ -6,7 +6,6 @@ const List<PetCondition> extraDogCatConditions = [
   PetCondition(
     id: 'pyometra',
     name: 'Piometra',
-    category: ConditionCategory.urinary, // Specifično za reproduktivni/urinarni trakt
     description: 'Gnojna upala materice koja nastaje usled hormonalnih promena nakon teranja. Ovo je životno ugrožavajuće stanje koje može dovesti do sepse i pucanja materice.',
     affectedSpecies: [PetType.dog, PetType.cat],
     icon: '⚠️',
@@ -40,7 +39,6 @@ const List<PetCondition> extraDogCatConditions = [
   PetCondition(
     id: 'cushing_syndrome',
     name: 'Kušingov sindrom',
-    category: ConditionCategory.endocrine,
     description: 'Preterana proizvodnja kortizola od strane nadbubrežnih žlezda.',
     affectedSpecies: [PetType.dog],
     icon: '⚖️',
@@ -65,7 +63,6 @@ const List<PetCondition> extraDogCatConditions = [
   PetCondition(
     id: 'pancreatitis_dog',
     name: 'Pankreatitis (Upala gušterače)',
-    category: ConditionCategory.digestive,
     description: 'Bolna upala pankreasa, često izazvana masnim obrokom.',
     affectedSpecies: [PetType.dog],
     icon: '🤢',
@@ -90,7 +87,6 @@ const List<PetCondition> extraDogCatConditions = [
   PetCondition(
     id: 'kennel_cough',
     name: 'Zarazni kašalj',
-    category: ConditionCategory.other, // Ili dodaj 'respiratory' u enum ako želiš
     description: 'Visoko zarazna respiratorna infekcija.',
     affectedSpecies: [PetType.dog],
     icon: '🗣️',
@@ -116,7 +112,6 @@ const List<PetCondition> extraDogCatConditions = [
   PetCondition(
     id: 'flutd',
     name: 'FLUTD (Urološki sindrom)',
-    category: ConditionCategory.urinary,
     description: 'Problemi sa donjim urinarnim traktom, uključujući kristale i upale.',
     affectedSpecies: [PetType.cat],
     icon: '🚽',
@@ -144,9 +139,8 @@ const List<PetCondition> extraDogCatConditions = [
   ),
 
   PetCondition(
-    id: 'hyperthyroidism_extra', // Promenjen ID da se ne kolidira sa glavnim fajlom
+    id: 'hyperthyroidism',
     name: 'Hipertireoza',
-    category: ConditionCategory.endocrine,
     description: 'Preterano aktivna štitna žlezda, česta kod starijih mačaka.',
     affectedSpecies: [PetType.cat],
     icon: '🦋',
@@ -171,7 +165,6 @@ const List<PetCondition> extraDogCatConditions = [
   PetCondition(
     id: 'hcm_cat',
     name: 'Hipertrofična kardiomiopatija (HCM)',
-    category: ConditionCategory.cardiovascular,
     description: 'Zadebljanje srčanog mišića koje dovodi do zastoja srca.',
     affectedSpecies: [PetType.cat],
     icon: '❤️',
@@ -201,7 +194,6 @@ const List<PetCondition> extraDogCatConditions = [
   PetCondition(
     id: 'cat_flu',
     name: 'Mačji grip (Rhinotracheitis)',
-    category: ConditionCategory.other,
     description: 'Respiratorni kompleks uzrokovan Herpes ili Calici virusom.',
     affectedSpecies: [PetType.cat],
     icon: '🤧',
