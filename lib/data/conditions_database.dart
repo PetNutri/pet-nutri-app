@@ -8,13 +8,14 @@ enum PetType { dog, cat, rabbit, rodent, bird, terrarium, aquarium }
 /// Kategorije za lakšu navigaciju u korisničkom interfejsu
 enum ConditionCategory {
   digestive,      // Jetra, Pankreas, IBD, Gastritis, Zubi
-  urinary,        // Bubrezi, Kristali
+  urinary,        // Bubrezi, Kristali, Piometra
   endocrine,      // Dijabetes, Štitna žlezda, Kušing
   dermatological, // Alergije, Koža
   cardiovascular, // Srce
-  neurological,   // Epilepsija, Artritis
-  exotic,         // Ptice, reptili, ribe
-  other           // Gojaznost
+  neurological,   // Epilepsija
+  musculoskeletal, // ARTRITIS i MBD (Ovdje je bila greška)
+  exotic,         // Specifično za ptice, reptile, ribe
+  other           // Gojaznost, Grip, Kašalj
 }
 
 class DietaryGuideline {
