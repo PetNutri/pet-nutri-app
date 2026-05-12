@@ -16,29 +16,42 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  int _step = 0; // 0 = welcome, 1 = select type, 2 = enter name
-  PetType _selectedType = PetType.dog;
-  final _nameController = TextEditingController();
+  int _step = 0; // 0 = welcome, 1 = select types, 2 = enter names
+  final Set<PetType> _selectedTypes = {PetType.dog};
+  final Map<PetType, TextEditingController> _nameControllers = {};
 
   @override
   void dispose() {
-    _nameController.dispose();
+    for (final c in _nameControllers.values) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  void _goToNames() {
+    // Kreiraj kontrolere za svaki izabrani tip
+    _nameControllers.clear();
+    for (final type in _selectedTypes) {
+      _nameControllers[type] = TextEditingController();
+    }
+    setState(() => _step = 2);
   }
 
   Future<void> _finish() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
 
-    // Sacuvaj ljubimca ako je uneo ime
-    final name = _nameController.text.trim();
-    if (name.isNotEmpty) {
-      final profile = PetProfile(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: name,
-        type: _selectedType,
-      );
-      await PetProfileService.saveProfile(profile);
+    // Sacuvaj ljubimce za svaki tip koji ima ime
+    for (final type in _selectedTypes) {
+      final name = _nameControllers[type]?.text.trim() ?? '';
+      if (name.isNotEmpty) {
+        final profile = PetProfile(
+          id: DateTime.now().millisecondsSinceEpoch.toString() + type.index.toString(),
+          name: name,
+          type: type,
+        );
+        await PetProfileService.saveProfile(profile);
+      }
     }
 
     if (mounted) {
@@ -131,45 +144,69 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: 40),
                 _buildButton(lang == 'en' ? 'Get Started' : 'Pocni', () => setState(() => _step = 1)),
               ] else if (_step == 1) ...[
-                // Select pet type
+                // Select pet types (multiple)
                 Text(
-                  lang == 'en' ? 'What kind of pet do you have?' : 'Kakvu zivotinju imas?',
+                  lang == 'en' ? 'What pets do you have?' : 'Kakve zivotinje imas?',
                   style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   textAlign: TextAlign.center,
                 ).animate().fadeIn(duration: 400.ms),
+                const SizedBox(height: 8),
+                Text(
+                  lang == 'en' ? 'Select all that apply' : 'Izaberi sve koje imas',
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted),
+                ),
                 const SizedBox(height: 32),
                 Wrap(
                   spacing: 12, runSpacing: 12,
                   alignment: WrapAlignment.center,
-                  children: PetType.values.map((type) => GestureDetector(
-                    onTap: () => setState(() => _selectedType = type),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 90, height: 90,
-                      decoration: BoxDecoration(
-                        color: _selectedType == type ? AppColors.primary.withOpacity(0.12) : AppColors.card,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: _selectedType == type ? AppColors.primary : AppColors.glassBorder,
-                          width: _selectedType == type ? 2 : 1,
+                  children: PetType.values.map((type) {
+                    final isSelected = _selectedTypes.contains(type);
+                    return GestureDetector(
+                      onTap: () => setState(() {
+                        if (isSelected && _selectedTypes.length > 1) {
+                          _selectedTypes.remove(type);
+                        } else {
+                          _selectedTypes.add(type);
+                        }
+                      }),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 90, height: 90,
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary.withOpacity(0.12) : AppColors.card,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : AppColors.glassBorder,
+                            width: isSelected ? 2 : 1,
+                          ),
                         ),
+                        child: Stack(children: [
+                          Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Text(_petEmoji(type), style: const TextStyle(fontSize: 30)),
+                            const SizedBox(height: 4),
+                            Text(_petLabel(type), style: GoogleFonts.inter(fontSize: 11,
+                              color: isSelected ? AppColors.primary : AppColors.textMuted,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
+                          ])),
+                          if (isSelected)
+                            Positioned(top: 6, right: 6,
+                              child: Container(
+                                width: 20, height: 20,
+                                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                                child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
+                              ),
+                            ),
+                        ]),
                       ),
-                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Text(_petEmoji(type), style: const TextStyle(fontSize: 30)),
-                        const SizedBox(height: 4),
-                        Text(_petLabel(type), style: GoogleFonts.inter(fontSize: 11,
-                          color: _selectedType == type ? AppColors.primary : AppColors.textMuted,
-                          fontWeight: _selectedType == type ? FontWeight.w600 : FontWeight.w400)),
-                      ]),
-                    ),
-                  )).toList(),
+                    );
+                  }).toList(),
                 ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
                 const SizedBox(height: 32),
-                _buildButton(lang == 'en' ? 'Next' : 'Dalje', () => setState(() => _step = 2)),
+                _buildButton(lang == 'en' ? 'Next' : 'Dalje', _goToNames),
               ] else ...[
-                // Enter name
+                // Enter names for each selected type
                 Text(
-                  lang == 'en' ? 'What\'s your pet\'s name?' : 'Kako se zove tvoj ljubimac?',
+                  lang == 'en' ? 'Name your pets' : 'Imenuj svoje ljubimce',
                   style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   textAlign: TextAlign.center,
                 ).animate().fadeIn(duration: 400.ms),
@@ -178,22 +215,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   lang == 'en' ? 'Optional — you can add this later' : 'Opciono — mozes dodati i kasnije',
                   style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted),
                 ),
-                const SizedBox(height: 32),
-                Text(_petEmoji(_selectedType), style: const TextStyle(fontSize: 56)),
                 const SizedBox(height: 24),
-                TextField(
-                  controller: _nameController,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: lang == 'en' ? 'Name' : 'Ime',
-                    hintStyle: GoogleFonts.inter(fontSize: 20, color: AppColors.textMuted),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  ),
-                ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-                const SizedBox(height: 32),
+                ..._selectedTypes.map((type) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(children: [
+                    Text(_petEmoji(type), style: const TextStyle(fontSize: 32)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: TextField(
+                        controller: _nameControllers[type],
+                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
+                        decoration: InputDecoration(
+                          hintText: '${lang == 'en' ? 'Name for' : 'Ime za'} ${_petLabel(type).toLowerCase()}',
+                          hintStyle: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ]),
+                )).toList(),
+                const SizedBox(height: 16),
                 _buildButton(lang == 'en' ? 'Done' : 'Gotovo', _finish),
               ],
 
