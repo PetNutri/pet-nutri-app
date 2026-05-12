@@ -5,6 +5,7 @@ import '../data/conditions_database.dart';
 import '../main.dart';
 import '../services/pet_profile_service.dart';
 import '../theme/app_theme.dart';
+import 'pet_detail_screen.dart';
 
 class PetProfilesScreen extends StatefulWidget {
   const PetProfilesScreen({super.key});
@@ -143,7 +144,9 @@ class _PetProfilesScreenState extends State<PetProfilesScreen> {
                                   child: const Icon(Icons.delete_rounded, color: AppColors.danger),
                                 ),
                                 onDismissed: (_) => _deleteProfile(pet.id),
-                                child: GlassCard(
+                                child: GestureDetector(
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PetDetailScreen(pet: pet))),
+                                  child: GlassCard(
                                   padding: const EdgeInsets.all(16),
                                   child: Row(children: [
                                     Container(
@@ -187,6 +190,7 @@ class _PetProfilesScreenState extends State<PetProfilesScreen> {
                                       ],
                                     ])),
                                   ]),
+                                ),
                                 ),
                               ).animate().fadeIn(delay: Duration(milliseconds: index * 80), duration: 350.ms),
                             );
