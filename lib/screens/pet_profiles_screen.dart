@@ -145,7 +145,10 @@ class _PetProfilesScreenState extends State<PetProfilesScreen> {
                                 ),
                                 onDismissed: (_) => _deleteProfile(pet.id),
                                 child: GestureDetector(
-                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PetDetailScreen(pet: pet))),
+                                  onTap: () async {
+                                    final deleted = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => PetDetailScreen(pet: pet)));
+                                    if (deleted == true) _loadProfiles();
+                                  },
                                   child: GlassCard(
                                   padding: const EdgeInsets.all(16),
                                   child: Row(children: [

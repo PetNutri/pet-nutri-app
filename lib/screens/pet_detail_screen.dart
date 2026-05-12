@@ -39,6 +39,34 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
     );
   }
 
+  Future<void> _deletePet() async {
+    final lang = localeProvider.locale.languageCode;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(lang == 'en' ? 'Delete pet?' : 'Obrisati ljubimca?'),
+        content: Text(lang == 'en'
+            ? 'Are you sure you want to delete ${pet.name}? This cannot be undone.'
+            : 'Da li ste sigurni da zelite da obrisete ${pet.name}? Ovo se ne moze poništiti.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(lang == 'en' ? 'Cancel' : 'Otkazi'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            child: Text(lang == 'en' ? 'Delete' : 'Obrisi'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await PetProfileService.deleteProfile(pet.id);
+      Navigator.pop(context, true); // vrati true da signalizira brisanje
+    }
+  }
+
   String _petEmoji(PetType type) {
     switch (type) {
       case PetType.dog: return '🐕';
@@ -362,6 +390,11 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                     onTap: _editPet,
                     child: GlassCard(padding: const EdgeInsets.all(10), borderRadius: 14,
                       child: const Icon(Icons.edit_rounded, color: AppColors.primary, size: 18))),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: _deletePet,
+                    child: GlassCard(padding: const EdgeInsets.all(10), borderRadius: 14,
+                      child: const Icon(Icons.delete_rounded, color: AppColors.danger, size: 18))),
                 ]),
               ]),
             ),
