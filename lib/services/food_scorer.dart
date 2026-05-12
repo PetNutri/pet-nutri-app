@@ -1,5 +1,4 @@
 import '../data/conditions_database.dart';
-import '../l10n/locale_provider.dart';
 import '../main.dart';
 import 'pet_food_api.dart';
 

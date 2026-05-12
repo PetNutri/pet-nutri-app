@@ -5,7 +5,6 @@ import 'dart:html' as html;
 import '../data/conditions_database.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/localized_condition.dart';
-import '../l10n/locale_provider.dart';
 import '../main.dart';
 import '../theme/app_theme.dart';
 import '../utils/text_utils.dart';

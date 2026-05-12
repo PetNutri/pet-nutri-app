@@ -1,6 +1,11 @@
 /// Veterinarski dijetetski vodici za cesta stanja kod kucnih ljubimaca.
 
 import 'extra_conditions_dogs_cats.dart';
+import 'conditions_rabbits.dart';
+import 'conditions_rodents.dart';
+import 'conditions_terrarium.dart';
+import 'conditions_aquarium.dart';
+import 'conditions_birds_extra.dart';
 
 enum PetType { dog, cat, rabbit, rodent, bird, terrarium, aquarium }
 
@@ -85,6 +90,11 @@ List<String> getAllSymptoms(PetType petType) {
 final List<PetCondition> allConditions = [
   ...conditionsDatabase,
   ...extraDogCatConditions,
+  ...rabbitConditions,
+  ...rodentConditions,
+  ...terrariumConditions,
+  ...aquariumConditions,
+  ...petBirdConditions,
 ];
 
 const List<PetCondition> conditionsDatabase = [
