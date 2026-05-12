@@ -204,7 +204,7 @@ class _PetProfilesScreenState extends State<PetProfilesScreen> {
   }
 }
 
-// ==================== ADD PET BOTTOM SHEET ====================
+// ==================== ADD/EDIT PET BOTTOM SHEET ====================
 
 class _AddPetSheet extends StatefulWidget {
   final VoidCallback onSaved;
@@ -217,14 +217,28 @@ class _AddPetSheetState extends State<_AddPetSheet> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
+  final _conditionSearchController = TextEditingController();
   PetType _selectedType = PetType.dog;
+  final Set<String> _selectedConditions = {};
+  String _conditionSearch = '';
 
   @override
   void dispose() {
     _nameController.dispose();
     _ageController.dispose();
     _weightController.dispose();
+    _conditionSearchController.dispose();
     super.dispose();
+  }
+
+  List<PetCondition> get _availableConditions {
+    final conditions = allConditions
+        .where((c) => c.affectedSpecies.contains(_selectedType))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    if (_conditionSearch.isEmpty) return conditions;
+    return conditions.where((c) =>
+        c.name.toLowerCase().contains(_conditionSearch.toLowerCase())).toList();
   }
 
   Future<void> _save() async {
@@ -237,6 +251,7 @@ class _AddPetSheetState extends State<_AddPetSheet> {
       type: _selectedType,
       ageMonths: int.tryParse(_ageController.text),
       weightKg: double.tryParse(_weightController.text),
+      conditions: _selectedConditions.toList(),
     );
 
     await PetProfileService.saveProfile(profile);
@@ -260,107 +275,221 @@ class _AddPetSheetState extends State<_AddPetSheet> {
   Widget build(BuildContext context) {
     final lang = localeProvider.locale.languageCode;
     return Container(
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Center(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        // Handle bar
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Center(
             child: Container(width: 40, height: 4,
               decoration: BoxDecoration(color: AppColors.textMuted.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
           ),
-          const SizedBox(height: 20),
-          Text(
-            lang == 'en' ? 'Add Pet' : 'Dodaj ljubimca',
-            style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 20),
+        ),
+        // Scrollable content
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                lang == 'en' ? 'Add Pet' : 'Dodaj ljubimca',
+                style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 20),
 
-          // Name
-          TextField(
-            controller: _nameController,
-            style: GoogleFonts.inter(color: AppColors.textPrimary),
-            decoration: InputDecoration(
-              labelText: lang == 'en' ? 'Name' : 'Ime',
-              labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
-            ),
-          ),
-          const SizedBox(height: 16),
+              // Name
+              TextField(
+                controller: _nameController,
+                style: GoogleFonts.inter(color: AppColors.textPrimary),
+                decoration: InputDecoration(
+                  labelText: lang == 'en' ? 'Name' : 'Ime',
+                  labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                ),
+              ),
+              const SizedBox(height: 16),
 
-          // Pet type
-          Text(lang == 'en' ? 'Type' : 'Vrsta', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
-          const SizedBox(height: 8),
-          Wrap(spacing: 8, runSpacing: 8,
-            children: PetType.values.map((type) => GestureDetector(
-              onTap: () => setState(() => _selectedType = type),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              // Pet type
+              Text(lang == 'en' ? 'Type' : 'Vrsta', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
+              const SizedBox(height: 8),
+              Wrap(spacing: 8, runSpacing: 8,
+                children: PetType.values.map((type) => GestureDetector(
+                  onTap: () => setState(() {
+                    _selectedType = type;
+                    _selectedConditions.clear(); // resetuj bolesti pri promeni vrste
+                  }),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _selectedType == type ? AppColors.primary.withOpacity(0.15) : AppColors.card,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: _selectedType == type ? AppColors.primary : AppColors.glassBorder),
+                    ),
+                    child: Text(_petLabel(type), style: GoogleFonts.inter(fontSize: 13,
+                      fontWeight: _selectedType == type ? FontWeight.w600 : FontWeight.w400,
+                      color: _selectedType == type ? AppColors.primary : AppColors.textSecondary)),
+                  ),
+                )).toList(),
+              ),
+              const SizedBox(height: 16),
+
+              // Age and weight
+              Row(children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ageController,
+                    keyboardType: TextInputType.number,
+                    style: GoogleFonts.inter(color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      labelText: lang == 'en' ? 'Age (months)' : 'Starost (meseci)',
+                      labelStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _weightController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    style: GoogleFonts.inter(color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      labelText: lang == 'en' ? 'Weight (kg)' : 'Tezina (kg)',
+                      labelStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                    ),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 20),
+
+              // Conditions section
+              Text(
+                lang == 'en' ? 'Health conditions (current or past)' : 'Zdravstvena stanja (sadasnja ili prosla)',
+                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                lang == 'en' ? 'Select conditions your pet has or had' : 'Izaberite bolesti koje vas ljubimac ima ili je imao',
+                style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 10),
+
+              // Selected conditions chips
+              if (_selectedConditions.isNotEmpty) ...[
+                Wrap(spacing: 6, runSpacing: 6,
+                  children: _selectedConditions.map((cId) {
+                    final condition = allConditions.where((c) => c.id == cId).firstOrNull;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedConditions.remove(cId)),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text(condition?.icon ?? '🩺', style: const TextStyle(fontSize: 12)),
+                          const SizedBox(width: 4),
+                          Text(condition?.name ?? cId, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.accent)),
+                          const SizedBox(width: 4),
+                          Icon(Icons.close_rounded, size: 14, color: AppColors.accent.withOpacity(0.7)),
+                        ]),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 10),
+              ],
+
+              // Condition search
+              Container(
                 decoration: BoxDecoration(
-                  color: _selectedType == type ? AppColors.primary.withOpacity(0.15) : AppColors.card,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _selectedType == type ? AppColors.primary : AppColors.glassBorder),
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.glassBorder),
                 ),
-                child: Text(_petLabel(type), style: GoogleFonts.inter(fontSize: 13,
-                  fontWeight: _selectedType == type ? FontWeight.w600 : FontWeight.w400,
-                  color: _selectedType == type ? AppColors.primary : AppColors.textSecondary)),
+                child: TextField(
+                  controller: _conditionSearchController,
+                  style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: lang == 'en' ? 'Search conditions...' : 'Pretrazi bolesti...',
+                    hintStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 13),
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 18),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  onChanged: (v) => setState(() => _conditionSearch = v),
+                ),
               ),
-            )).toList(),
-          ),
-          const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
-          // Age and weight
-          Row(children: [
-            Expanded(
-              child: TextField(
-                controller: _ageController,
-                keyboardType: TextInputType.number,
-                style: GoogleFonts.inter(color: AppColors.textPrimary),
-                decoration: InputDecoration(
-                  labelText: lang == 'en' ? 'Age (months)' : 'Starost (meseci)',
-                  labelStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+              // Condition list (max 5 visible)
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 180),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _availableConditions.length.clamp(0, 20),
+                  itemBuilder: (context, index) {
+                    final condition = _availableConditions[index];
+                    final isSelected = _selectedConditions.contains(condition.id);
+                    return GestureDetector(
+                      onTap: () => setState(() {
+                        if (isSelected) {
+                          _selectedConditions.remove(condition.id);
+                        } else {
+                          _selectedConditions.add(condition.id);
+                        }
+                      }),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        margin: const EdgeInsets.only(bottom: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(children: [
+                          Text(condition.icon, style: const TextStyle(fontSize: 16)),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(condition.name, style: GoogleFonts.inter(fontSize: 13,
+                            color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400))),
+                          if (isSelected)
+                            const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 18),
+                        ]),
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _weightController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                style: GoogleFonts.inter(color: AppColors.textPrimary),
-                decoration: InputDecoration(
-                  labelText: lang == 'en' ? 'Weight (kg)' : 'Tezina (kg)',
-                  labelStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
-                ),
-              ),
-            ),
-          ]),
-          const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-          // Save button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _save,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: Text(lang == 'en' ? 'Save' : 'Sacuvaj', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600)),
+                ),
               ),
-              child: Text(lang == 'en' ? 'Save' : 'Sacuvaj', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600)),
-            ),
+            ]),
           ),
-        ]),
-      ),
+        ),
+      ]),
     );
   }
 }

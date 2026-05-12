@@ -9,9 +9,35 @@ import '../theme/app_theme.dart';
 import 'condition_screen.dart';
 
 /// Ekran sa detaljima ljubimca i personalizovanim preporukama
-class PetDetailScreen extends StatelessWidget {
+class PetDetailScreen extends StatefulWidget {
   final PetProfile pet;
   const PetDetailScreen({super.key, required this.pet});
+  @override
+  State<PetDetailScreen> createState() => _PetDetailScreenState();
+}
+
+class _PetDetailScreenState extends State<PetDetailScreen> {
+  late PetProfile pet;
+
+  @override
+  void initState() {
+    super.initState();
+    pet = widget.pet;
+  }
+
+  Future<void> _editPet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _EditPetSheet(
+        pet: pet,
+        onSaved: (updatedPet) {
+          setState(() => pet = updatedPet);
+        },
+      ),
+    );
+  }
 
   String _petEmoji(PetType type) {
     switch (type) {
@@ -204,6 +230,62 @@ class PetDetailScreen extends StatelessWidget {
         break;
     }
 
+    // Preporuke na osnovu unetih bolesti
+    if (pet.conditions.isNotEmpty) {
+      // Prikupi sve dijetetske smernice iz bolesti ljubimca
+      final goodSet = <String>{};
+      final badSet = <String>{};
+      final guidelinesSummary = <String>[];
+
+      for (final cId in pet.conditions) {
+        final condition = allConditions.where((c) => c.id == cId).firstOrNull;
+        if (condition == null) continue;
+
+        goodSet.addAll(condition.goodIngredients);
+        badSet.addAll(condition.badIngredients);
+
+        for (final g in condition.guidelines) {
+          final summary = '${g.nutrient}: ${g.reason}';
+          if (!guidelinesSummary.contains(summary)) {
+            guidelinesSummary.add(summary);
+          }
+        }
+      }
+
+      // Preporuka za ishranu
+      if (goodSet.isNotEmpty) {
+        final topGood = goodSet.take(8).join(', ');
+        recs.add(_Recommendation(
+          icon: '✅',
+          title: lang == 'en' ? 'Recommended ingredients' : 'Preporuceni sastojci',
+          description: lang == 'en'
+              ? 'Based on your pet\'s conditions, look for food containing: $topGood'
+              : 'Na osnovu stanja vaseg ljubimca, trazite hranu koja sadrzi: $topGood',
+        ));
+      }
+
+      if (badSet.isNotEmpty) {
+        final topBad = badSet.take(8).join(', ');
+        recs.add(_Recommendation(
+          icon: '🚫',
+          title: lang == 'en' ? 'Ingredients to avoid' : 'Sastojci koje treba izbegavati',
+          description: lang == 'en'
+              ? 'Based on your pet\'s conditions, avoid food containing: $topBad'
+              : 'Na osnovu stanja vaseg ljubimca, izbegavajte hranu koja sadrzi: $topBad',
+        ));
+      }
+
+      // Kljucne dijetetske smernice
+      if (guidelinesSummary.isNotEmpty) {
+        final topGuidelines = guidelinesSummary.take(4).join('\n• ');
+        recs.add(_Recommendation(
+          icon: '📋',
+          title: lang == 'en' ? 'Diet guidelines for conditions' : 'Dijetetske smernice za stanja',
+          description: '• $topGuidelines',
+        ));
+      }
+    }
+
     return recs;
   }
 
@@ -275,7 +357,11 @@ class PetDetailScreen extends StatelessWidget {
                     child: GlassCard(padding: const EdgeInsets.all(10), borderRadius: 14,
                       child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textSecondary, size: 18))),
                   const SizedBox(width: 12),
-                  Text('${_petEmoji(pet.type)} ${pet.name}', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                  Expanded(child: Text('${_petEmoji(pet.type)} ${pet.name}', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary))),
+                  GestureDetector(
+                    onTap: _editPet,
+                    child: GlassCard(padding: const EdgeInsets.all(10), borderRadius: 14,
+                      child: const Icon(Icons.edit_rounded, color: AppColors.primary, size: 18))),
                 ]),
               ]),
             ),
@@ -316,6 +402,39 @@ class PetDetailScreen extends StatelessWidget {
                       ])),
                     ]),
                   ).animate().fadeIn(duration: 400.ms),
+
+                  // Pet's conditions
+                  if (pet.conditions.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(
+                          lang == 'en' ? '🩺 Health conditions' : '🩺 Zdravstvena stanja',
+                          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(spacing: 8, runSpacing: 8,
+                          children: pet.conditions.map((cId) {
+                            final condition = allConditions.where((c) => c.id == cId).firstOrNull;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppColors.accent.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+                              ),
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Text(condition?.icon ?? '🩺', style: const TextStyle(fontSize: 14)),
+                                const SizedBox(width: 6),
+                                Text(condition?.name ?? cId, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.accent)),
+                              ]),
+                            );
+                          }).toList(),
+                        ),
+                      ]),
+                    ).animate().fadeIn(delay: 50.ms, duration: 400.ms),
+                  ],
 
                   const SizedBox(height: 24),
 
@@ -419,4 +538,268 @@ class _Recommendation {
   final String title;
   final String description;
   const _Recommendation({required this.icon, required this.title, required this.description});
+}
+
+// ==================== EDIT PET SHEET ====================
+
+class _EditPetSheet extends StatefulWidget {
+  final PetProfile pet;
+  final void Function(PetProfile) onSaved;
+  const _EditPetSheet({required this.pet, required this.onSaved});
+  @override
+  State<_EditPetSheet> createState() => _EditPetSheetState();
+}
+
+class _EditPetSheetState extends State<_EditPetSheet> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _ageController;
+  late final TextEditingController _weightController;
+  final _conditionSearchController = TextEditingController();
+  late PetType _selectedType;
+  final Set<String> _selectedConditions = {};
+  String _conditionSearch = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.pet.name);
+    _ageController = TextEditingController(text: widget.pet.ageMonths?.toString() ?? '');
+    _weightController = TextEditingController(text: widget.pet.weightKg?.toString() ?? '');
+    _selectedType = widget.pet.type;
+    _selectedConditions.addAll(widget.pet.conditions);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _weightController.dispose();
+    _conditionSearchController.dispose();
+    super.dispose();
+  }
+
+  List<PetCondition> get _availableConditions {
+    final conditions = allConditions
+        .where((c) => c.affectedSpecies.contains(_selectedType))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    if (_conditionSearch.isEmpty) return conditions;
+    return conditions.where((c) =>
+        c.name.toLowerCase().contains(_conditionSearch.toLowerCase())).toList();
+  }
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+
+    final profile = PetProfile(
+      id: widget.pet.id,
+      name: name,
+      type: _selectedType,
+      ageMonths: int.tryParse(_ageController.text),
+      weightKg: double.tryParse(_weightController.text),
+      conditions: _selectedConditions.toList(),
+      createdAt: widget.pet.createdAt,
+    );
+
+    await PetProfileService.saveProfile(profile);
+    widget.onSaved(profile);
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = localeProvider.locale.languageCode;
+    return Container(
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Center(
+            child: Container(width: 40, height: 4,
+              decoration: BoxDecoration(color: AppColors.textMuted.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+          ),
+        ),
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                lang == 'en' ? 'Edit Pet' : 'Izmeni ljubimca',
+                style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 20),
+
+              // Name
+              TextField(
+                controller: _nameController,
+                style: GoogleFonts.inter(color: AppColors.textPrimary),
+                decoration: InputDecoration(
+                  labelText: lang == 'en' ? 'Name' : 'Ime',
+                  labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Age and weight
+              Row(children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ageController,
+                    keyboardType: TextInputType.number,
+                    style: GoogleFonts.inter(color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      labelText: lang == 'en' ? 'Age (months)' : 'Starost (meseci)',
+                      labelStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _weightController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    style: GoogleFonts.inter(color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      labelText: lang == 'en' ? 'Weight (kg)' : 'Tezina (kg)',
+                      labelStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                    ),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 20),
+
+              // Conditions section
+              Text(
+                lang == 'en' ? 'Health conditions (current or past)' : 'Zdravstvena stanja (sadasnja ili prosla)',
+                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                lang == 'en' ? 'Select conditions your pet has or had' : 'Izaberite bolesti koje vas ljubimac ima ili je imao',
+                style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 10),
+
+              // Selected conditions chips
+              if (_selectedConditions.isNotEmpty) ...[
+                Wrap(spacing: 6, runSpacing: 6,
+                  children: _selectedConditions.map((cId) {
+                    final condition = allConditions.where((c) => c.id == cId).firstOrNull;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedConditions.remove(cId)),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text(condition?.icon ?? '🩺', style: const TextStyle(fontSize: 12)),
+                          const SizedBox(width: 4),
+                          Text(condition?.name ?? cId, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.accent)),
+                          const SizedBox(width: 4),
+                          Icon(Icons.close_rounded, size: 14, color: AppColors.accent.withOpacity(0.7)),
+                        ]),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 10),
+              ],
+
+              // Condition search
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.glassBorder),
+                ),
+                child: TextField(
+                  controller: _conditionSearchController,
+                  style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: lang == 'en' ? 'Search conditions...' : 'Pretrazi bolesti...',
+                    hintStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 13),
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 18),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  onChanged: (v) => setState(() => _conditionSearch = v),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Condition list
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 180),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _availableConditions.length.clamp(0, 20),
+                  itemBuilder: (context, index) {
+                    final condition = _availableConditions[index];
+                    final isSelected = _selectedConditions.contains(condition.id);
+                    return GestureDetector(
+                      onTap: () => setState(() {
+                        if (isSelected) {
+                          _selectedConditions.remove(condition.id);
+                        } else {
+                          _selectedConditions.add(condition.id);
+                        }
+                      }),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        margin: const EdgeInsets.only(bottom: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(children: [
+                          Text(condition.icon, style: const TextStyle(fontSize: 16)),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(condition.name, style: GoogleFonts.inter(fontSize: 13,
+                            color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400))),
+                          if (isSelected)
+                            const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 18),
+                        ]),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: Text(lang == 'en' ? 'Save' : 'Sacuvaj', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
 }
