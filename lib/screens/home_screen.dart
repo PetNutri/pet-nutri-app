@@ -13,7 +13,6 @@ import 'condition_screen.dart';
 import 'pet_profiles_screen.dart';
 import 'search_screen.dart';
 import 'symptom_checker_screen.dart';
-import 'vet_directory_screen.dart';
 
 /// Reusable hover wrapper — scales up slightly and changes opacity on hover.
 class HoverEffect extends StatefulWidget {
@@ -194,8 +193,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _ShopSearchButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()))),
                         const SizedBox(height: 12),
                         _MyPetsButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PetProfilesScreen()))),
-                        const SizedBox(height: 12),
-                        _VetDirectoryButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VetDirectoryScreen()))),
 
                         const SizedBox(height: 24),
 
@@ -455,36 +452,6 @@ class _MyPetsButton extends StatelessWidget {
         ),
       ),
     ).animate().fadeIn(delay: 320.ms, duration: 400.ms);
-  }
-}
-
-class _VetDirectoryButton extends StatelessWidget {
-  final AppLocalizations l;
-  final VoidCallback onTap;
-  const _VetDirectoryButton({required this.l, required this.onTap});
-  @override
-  Widget build(BuildContext context) {
-    final lang = l.lang;
-    return HoverEffect(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF059669), Color(0xFF10B981)]),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: const Color(0xFF059669).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 22),
-            const SizedBox(width: 10),
-            Text(lang == 'en' ? 'Vet Directory' : 'Veterinari u Srbiji', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(delay: 360.ms, duration: 400.ms);
   }
 }
 
