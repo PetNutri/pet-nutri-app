@@ -70,4 +70,25 @@ class PetFoodApi {
         .where((p) => p.name.isNotEmpty && p.name != 'Unknown product')
         .toList();
   }
+
+  /// Pretraga proizvoda po barkodu
+  static Future<PetFoodProduct?> getByBarcode(String barcode) async {
+    final uri = Uri.parse('$_baseUrl/api/v0/product/$barcode.json');
+
+    final response = await http.get(uri).timeout(
+      const Duration(seconds: 10),
+    );
+
+    if (response.statusCode != 200) return null;
+
+    final data = json.decode(response.body);
+    if (data['status'] != 1) return null;
+
+    final product = data['product'] as Map<String, dynamic>?;
+    if (product == null) return null;
+
+    final result = PetFoodProduct.fromJson(product);
+    if (result.name == 'Unknown product') return null;
+    return result;
+  }
 }

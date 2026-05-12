@@ -2,14 +2,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 import '../data/conditions_database.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/localized_condition.dart';
+import '../main.dart';
 import '../services/food_scorer.dart';
 import '../services/pet_food_api.dart';
 import '../services/pet_profile_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/url_helper.dart';
+import '../widgets/disclaimer_banner.dart';
 
 class ConditionScreen extends StatefulWidget {
   final PetCondition condition;
@@ -47,6 +50,32 @@ class _ConditionScreenState extends State<ConditionScreen> {
   Future<void> _toggleFavorite() async {
     await PetProfileService.toggleFavorite(widget.condition.id);
     setState(() => _isFavorite = !_isFavorite);
+  }
+
+  void _shareCondition() {
+    final c = widget.condition;
+    final lang = localeProvider.locale.languageCode;
+    final name = localizedName(c, lang);
+    final desc = localizedDescription(c, lang);
+    final treatment = localizedTreatment(c, lang);
+    final guidelines = localizedGuidelines(c, lang);
+
+    final buffer = StringBuffer();
+    buffer.writeln('🩺 $name');
+    buffer.writeln();
+    buffer.writeln(desc);
+    buffer.writeln();
+    buffer.writeln(lang == 'en' ? '📋 Dietary Guidelines:' : '📋 Dijetetske smernice:');
+    for (final g in guidelines) {
+      buffer.writeln('• ${g.nutrient}: ${g.reason}');
+    }
+    buffer.writeln();
+    buffer.writeln(lang == 'en' ? '💊 Treatment:' : '💊 Lecenje:');
+    buffer.writeln(treatment);
+    buffer.writeln();
+    buffer.writeln('— PetNutri App');
+
+    Share.share(buffer.toString(), subject: name);
   }
 
   Future<void> _loadInitialFood() async {
@@ -190,6 +219,12 @@ class _ConditionScreenState extends State<ConditionScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _shareCondition,
+                          child: GlassCard(padding: const EdgeInsets.all(10), borderRadius: 14,
+                            child: const Icon(Icons.share_rounded, color: AppColors.textMuted, size: 20)),
+                        ),
                       ],
                     ),
                   ]),
@@ -238,7 +273,9 @@ class _ConditionScreenState extends State<ConditionScreen> {
                           Text(cTreatment, style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary, height: 1.6)),
                         ]),
                       ).animate().fadeIn(delay: 350.ms, duration: 400.ms),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
+                      const DisclaimerBanner(),
+                      const SizedBox(height: 8),
 
                       // Search section - only for dogs and cats
                       if (c.affectedSpecies.contains(PetType.dog) || c.affectedSpecies.contains(PetType.cat)) ...[

@@ -5,6 +5,7 @@ import '../data/conditions_database.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/localized_condition.dart';
 import '../main.dart';
+import '../services/pet_profile_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/text_utils.dart';
 import '../utils/url_helper.dart';
@@ -12,6 +13,7 @@ import 'condition_screen.dart';
 import 'pet_profiles_screen.dart';
 import 'search_screen.dart';
 import 'symptom_checker_screen.dart';
+import 'vet_directory_screen.dart';
 
 /// Reusable hover wrapper — scales up slightly and changes opacity on hover.
 class HoverEffect extends StatefulWidget {
@@ -59,6 +61,19 @@ class _HomeScreenState extends State<HomeScreen> {
   PetType _selectedPet = PetType.dog;
   String _searchQuery = '';
   final _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDefaultPetType();
+  }
+
+  Future<void> _loadDefaultPetType() async {
+    final profiles = await PetProfileService.getProfiles();
+    if (profiles.isNotEmpty && mounted) {
+      setState(() => _selectedPet = profiles.first.type);
+    }
+  }
 
   List<PetCondition> get _filteredConditions {
     final lang = localeProvider.locale.languageCode;
@@ -121,6 +136,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const Spacer(),
                             HoverEffect(
+                              onTap: () => themeProvider.toggle(),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                ),
+                                child: Icon(themeProvider.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: Colors.white, size: 20),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            HoverEffect(
                               onTap: () => localeProvider.toggleLocale(),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -166,6 +194,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         _ShopSearchButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()))),
                         const SizedBox(height: 12),
                         _MyPetsButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PetProfilesScreen()))),
+                        const SizedBox(height: 12),
+                        _VetDirectoryButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VetDirectoryScreen()))),
 
                         const SizedBox(height: 24),
 
@@ -425,6 +455,36 @@ class _MyPetsButton extends StatelessWidget {
         ),
       ),
     ).animate().fadeIn(delay: 320.ms, duration: 400.ms);
+  }
+}
+
+class _VetDirectoryButton extends StatelessWidget {
+  final AppLocalizations l;
+  final VoidCallback onTap;
+  const _VetDirectoryButton({required this.l, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    final lang = l.lang;
+    return HoverEffect(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [Color(0xFF059669), Color(0xFF10B981)]),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: const Color(0xFF059669).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 22),
+            const SizedBox(width: 10),
+            Text(lang == 'en' ? 'Vet Directory' : 'Veterinari u Srbiji', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: 360.ms, duration: 400.ms);
   }
 }
 

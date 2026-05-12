@@ -17,10 +17,19 @@ class AppColors {
   static const textMuted = Color(0xFF718096);       // srednja siva
   static const glassBorder = Color(0x12000000);
   static const glassBackground = Color(0x06000000);
+
+  // Dark mode boje
+  static const darkBackground = Color(0xFF1A1D23);
+  static const darkSurface = Color(0xFF2D3139);
+  static const darkCard = Color(0xFF2D3139);
+  static const darkTextPrimary = Color(0xFFF7FAFC);
+  static const darkTextSecondary = Color(0xFFCBD5E0);
+  static const darkTextMuted = Color(0xFF718096);
+  static const darkGlassBorder = Color(0x20FFFFFF);
 }
 
 class AppTheme {
-  static ThemeData get darkTheme {
+  static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
@@ -38,6 +47,29 @@ class AppTheme {
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColors.darkBackground,
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.primary,
+        secondary: AppColors.accent,
+        surface: AppColors.darkSurface,
+      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppColors.darkTextSecondary,
         ),
       ),
     );
