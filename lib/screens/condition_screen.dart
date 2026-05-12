@@ -2,13 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:html' as html;
 import '../data/conditions_database.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/localized_condition.dart';
 import '../services/food_scorer.dart';
 import '../services/pet_food_api.dart';
+import '../services/pet_profile_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/url_helper.dart';
 
 class ConditionScreen extends StatefulWidget {
   final PetCondition condition;
@@ -26,14 +27,26 @@ class _ConditionScreenState extends State<ConditionScreen> {
   String? _error;
   Timer? _debounce;
   String _scoreFilter = 'all';
+  bool _isFavorite = false;
 
   @override
   void initState() {
     super.initState();
+    _loadFavoriteState();
     if (widget.condition.affectedSpecies.contains(PetType.dog) ||
         widget.condition.affectedSpecies.contains(PetType.cat)) {
       _loadInitialFood();
     }
+  }
+
+  Future<void> _loadFavoriteState() async {
+    final fav = await PetProfileService.isFavorite(widget.condition.id);
+    if (mounted) setState(() => _isFavorite = fav);
+  }
+
+  Future<void> _toggleFavorite() async {
+    await PetProfileService.toggleFavorite(widget.condition.id);
+    setState(() => _isFavorite = !_isFavorite);
   }
 
   Future<void> _loadInitialFood() async {
@@ -159,6 +172,24 @@ class _ConditionScreenState extends State<ConditionScreen> {
                           child: Text('${c.icon} $cName',
                             style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                             overflow: TextOverflow.ellipsis)),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _toggleFavorite,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: _isFavorite ? AppColors.accent.withOpacity(0.12) : AppColors.card,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: _isFavorite ? AppColors.accent.withOpacity(0.3) : AppColors.glassBorder),
+                            ),
+                            child: Icon(
+                              _isFavorite ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                              color: _isFavorite ? AppColors.accent : AppColors.textMuted,
+                              size: 20,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ]),
@@ -309,7 +340,7 @@ class _FoodResultCard extends StatelessWidget {
     final fs = foodScore;
     final product = fs.product;
     return GestureDetector(
-      onTap: () => html.window.open(product.productUrl, '_blank'),
+      onTap: () => openUrl(product.productUrl),
       child: GlassCard(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

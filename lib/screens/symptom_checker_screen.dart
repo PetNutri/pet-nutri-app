@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../data/conditions_database.dart';
 import '../data/symptom_groups.dart';
+import '../data/symptom_urgency.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/localized_condition.dart';
 import '../main.dart';
@@ -486,6 +487,10 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
 
   Widget _buildSymptomTile(String symptom) {
     final isSelected = _selectedSymptoms.contains(symptom);
+    final urgency = getSymptomUrgency(symptom);
+    final isUrgent = urgency == SymptomUrgency.urgent;
+    final isSerious = urgency == SymptomUrgency.serious;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 5),
       child: GestureDetector(
@@ -494,10 +499,18 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary.withOpacity(0.08) : AppColors.card,
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.08)
+                : isUrgent
+                    ? AppColors.danger.withOpacity(0.04)
+                    : AppColors.card,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primary.withOpacity(0.4) : AppColors.glassBorder,
+              color: isSelected
+                  ? AppColors.primary.withOpacity(0.4)
+                  : isUrgent
+                      ? AppColors.danger.withOpacity(0.3)
+                      : AppColors.glassBorder,
             ),
           ),
           child: Row(children: [
@@ -520,6 +533,24 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
             Expanded(child: Text(symptom, style: GoogleFonts.inter(fontSize: 14,
               color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400))),
+            if (isUrgent)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text('🚨 HITNO', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.danger)),
+              )
+            else if (isSerious)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text('⚠️', style: GoogleFonts.inter(fontSize: 10)),
+              ),
           ]),
         ),
       ),

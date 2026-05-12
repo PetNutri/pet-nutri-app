@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:html' as html;
 import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
+import '../utils/url_helper.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -51,25 +51,25 @@ class SearchScreen extends StatelessWidget {
                       .animate().fadeIn(duration: 400.ms),
                   const SizedBox(height: 16),
                   _ShopTile(label: 'Pet Centar', color: const Color(0xFFE65100),
-                    onTap: () => html.window.open('https://www.pet-centar.rs/', '_blank')),
+                    onTap: () => openUrl('https://www.pet-centar.rs/')),
                   const SizedBox(height: 10),
                   _ShopTile(label: 'PetSpot', color: const Color(0xFF2E7D32),
-                    onTap: () => html.window.open('https://petspot.rs/catalogsearch/result/?q=', '_blank')),
+                    onTap: () => openUrl('https://petspot.rs/catalogsearch/result/?q=')),
                   const SizedBox(height: 10),
                   _ShopTile(label: 'Premium Pet', color: const Color(0xFF1565C0),
-                    onTap: () => html.window.open('https://www.premiumpet.rs/', '_blank')),
+                    onTap: () => openUrl('https://www.premiumpet.rs/')),
                   const SizedBox(height: 10),
                   _ShopTile(label: 'Ananas', color: const Color(0xFF6A1B9A),
-                    onTap: () => html.window.open('https://ananas.rs/search?query=hrana+za+ljubimce', '_blank')),
+                    onTap: () => openUrl('https://ananas.rs/search?query=hrana+za+ljubimce')),
                   const SizedBox(height: 10),
                   _ShopTile(label: 'Plus Plus', color: const Color(0xFFD32F2F),
-                    onTap: () => html.window.open('https://www.plusplus.co.rs/', '_blank')),
+                    onTap: () => openUrl('https://www.plusplus.co.rs/')),
                   const SizedBox(height: 10),
                   _ShopTile(label: 'dm', color: const Color(0xFF008FD5),
-                    onTap: () => html.window.open('https://www.dm.rs/search?query=kucni%20ljubimci&searchProviderType=dm-products', '_blank')),
+                    onTap: () => openUrl('https://www.dm.rs/search?query=kucni%20ljubimci&searchProviderType=dm-products')),
                   const SizedBox(height: 10),
                   _ShopTile(label: 'iHerb', color: const Color(0xFF3B7A57),
-                    onTap: () => html.window.open('https://www.iherb.com/c/pet-care', '_blank')),
+                    onTap: () => openUrl('https://www.iherb.com/c/pet-care')),
                   const SizedBox(height: 32),
                 ],
               ),

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:html' as html;
 import '../data/conditions_database.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/localized_condition.dart';
 import '../main.dart';
 import '../theme/app_theme.dart';
 import '../utils/text_utils.dart';
+import '../utils/url_helper.dart';
 import 'condition_screen.dart';
+import 'pet_profiles_screen.dart';
 import 'search_screen.dart';
 import 'symptom_checker_screen.dart';
 
@@ -163,6 +164,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         _FindVetButton(l: l),
                         const SizedBox(height: 12),
                         _ShopSearchButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()))),
+                        const SizedBox(height: 12),
+                        _MyPetsButton(l: l, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PetProfilesScreen()))),
 
                         const SizedBox(height: 24),
 
@@ -395,6 +398,36 @@ class _ShopSearchButton extends StatelessWidget {
   }
 }
 
+class _MyPetsButton extends StatelessWidget {
+  final AppLocalizations l;
+  final VoidCallback onTap;
+  const _MyPetsButton({required this.l, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    final lang = l.lang;
+    return HoverEffect(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [Color(0xFF6B4E3D), Color(0xFF8B6F47)]),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: const Color(0xFF6B4E3D).withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.pets_rounded, color: Colors.white, size: 22),
+            const SizedBox(width: 10),
+            Text(lang == 'en' ? 'My Pets' : 'Moji ljubimci', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: 320.ms, duration: 400.ms);
+  }
+}
+
 class _FindVetButton extends StatefulWidget {
   final AppLocalizations l;
   const _FindVetButton({required this.l});
@@ -408,15 +441,7 @@ class _FindVetButtonState extends State<_FindVetButton> {
 
   void _findVet() {
     setState(() => _loading = true);
-    html.window.navigator.geolocation.getCurrentPosition().then((position) {
-      final lat = position.coords!.latitude;
-      final lng = position.coords!.longitude;
-      final query = Uri.encodeComponent('veterinar');
-      html.window.open('https://www.google.com/maps/search/$query/@$lat,$lng,14z', '_blank');
-      setState(() => _loading = false);
-    }).catchError((_) {
-      final query = Uri.encodeComponent('veterinar near me');
-      html.window.open('https://www.google.com/maps/search/$query', '_blank');
+    openVetSearch().then((_) {
       setState(() => _loading = false);
     });
   }
